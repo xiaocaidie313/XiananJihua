@@ -1,0 +1,16 @@
+.container {
+    width:100%;
+    padding:16px;
+    height:80px;
+    bottom:0;
+    position:fixed; 
+    z-index:50;
+    /* background-color:white; 移除，让 footer-purple 类控制背景色 */
+    border-top:1px solid #e5e5e5;
+    box-shadow:0 0 10px 0 rgba(0,0,0,0.1);
+}
+
+/* 如果同时有 container 和 footer-purple 类，footer-purple 的背景色会生效 */
+/* .container.footer-purple {
+    background-color: #944A94;
+} */
