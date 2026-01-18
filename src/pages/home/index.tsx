@@ -4,7 +4,7 @@ import { useAppSelector, useAppDispatch } from '../../store/hooks';
 // 步骤 2: 导入 actions（用于修改状态）
 import { setCurrentIndex } from '../../features/carousel/carousleSlice';
 import Nav from '../../components/nav';
-import DisplayOutLine from '../../components/displayoutLine';
+import NewsCardOutline from '../../components/newcardoutLine';
 import image01 from '@/assets/images/carousel/01.jpg';
 import Header from '@/components/header';
 function Home() {
@@ -93,7 +93,7 @@ function Home() {
             </div>
             <Nav />
             {Array.from({length: 6}).map((_, index) => (
-                <DisplayOutLine key={index} image={image01} text={'我是text'} />
+                <NewsCardOutline key={index} image={image01} text={'我是text'} />
             ))}
         </div>
     );

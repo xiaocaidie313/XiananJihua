@@ -1,7 +1,4 @@
-
-
-
-function DisplayOutLine(props){
+function NewsCardOutline(props){
     const {image, text=''} = props;
 
     return (
@@ -53,4 +50,4 @@ function DisplayOutLine(props){
         </>
     )
 }
-export default DisplayOutLine
+export default NewsCardOutline

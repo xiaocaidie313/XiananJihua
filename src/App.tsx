@@ -1,5 +1,4 @@
 import Footer from "./components/footer";
-import Header from "./components/header";
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from "./pages/home";
 import Warn from "./pages/warn";
@@ -8,7 +7,11 @@ import Me from "./pages/me";
 import ShortVideo from "./pages/shortvedio";
 import Cartoon from "./pages/cartoon";
 import Podcast from "./pages/podcast";
+import { useLocation } from 'react-router-dom';
+
 function App() {
+  const location = useLocation();
+  const shouldShowFooter = location.pathname !== '/chat';
   return (
     <>
       <div className="flex flex-col min-h-screen w-full">
@@ -28,7 +31,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />}></Route>
           </Routes>
         </main>
-        <Footer />
+        {shouldShowFooter && <Footer />}
       </div>
     </>
   );

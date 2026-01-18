@@ -13,31 +13,41 @@
     justify-content: center;
 }
 
-.header-search {
+.search-wrapper {
+    position: relative;
+    /* width: 70%; */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-icon-wrapper {
+    position: absolute;
+    left: 12px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.search-input {
     width: 100%;
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #e5e5e5;
+    background-color: #F5F5F5;
+    padding: 0 16px 0 40px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
 }
 
-/* 覆盖 Ant Design Search 组件的样式 */
-.header-search .ant-input {
-    border-radius: 20px !important;
-    height: 40px !important;
-    background-color: #F5F5F5 !important;
-    border: none !important;
-    padding-left: 40px !important;
+.search-input:focus {
+    border-color: #5C4599;
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(92, 69, 153, 0.1);
 }
 
-.header-search .ant-input-group-addon {
-    border: none !important;
-    background-color: transparent !important;
-}
-
-.header-search .ant-input-search-button {
-    border-radius: 0 20px 20px 0 !important;
-    border: none !important;
-    background-color: #891DB4 !important;
-}
-
-.search-icon {
-    color: #891DB4;
-    font-size: 16px;
+.search-input::placeholder {
+    color: #999;
 }

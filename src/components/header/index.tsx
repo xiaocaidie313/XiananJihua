@@ -1,24 +1,66 @@
-import { Input } from 'antd'
+import { useState } from 'react';
+import { SearchIcon } from '../icon';
+import { useLocation , useNavigate} from 'react-router-dom';
+import { LeftOutlined } from '@ant-design/icons';
+import './index.css';
 
-const { Search } = Input;// 解构出 Search 组件  input 下的子组件
+function Header() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [searchValue, setSearchValue] = useState('');
 
-function Header(){
+    const handleSearch = () => {
+        if (searchValue.trim()) {
+            console.log('搜索:', searchValue);
+            // 这里可以添加实际的搜索逻辑
+        }
+    };
 
-    const onSearch = (value: string) => console.log(value);
-    return(
-    <>
-        <div className="flex flex-col items-center justify-center w-full h-20 fixed top-0 bg-white px-4 z-50">
-        <Search 
-         placeholder="Search"
-         onSearch={onSearch}
-         enterButton
-         allowClear
-         style={{ width: '90%' }}
-        //  className='w-4/5'
-         />
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    return (
+        <div className="header-container">
+            {
+                location.pathname !== '/home' && (
+                    <div 
+                    onClick={() => navigate(-1)}
+                    style={{
+                        width:'10%',
+                        display:'flex',
+                        alignItems:'center',
+                        justifyContent:'center',
+                        cursor:'pointer',
+                        position:'absolute',
+                        left:'10px',
+                    }}>
+                            <LeftOutlined />
+                    </div>
+                )
+            }
+            <div className="search-wrapper"
+            style={{
+                width:`${location.pathname === '/home' ? '100%' : '75%'}`,
+            }}
+            >
+
+                <div className="search-icon-wrapper">
+                    <SearchIcon />
+                </div>
+                <input
+                    type="text"
+                    placeholder="搜索内容..."
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="search-input"
+                />
+            </div>
         </div>
-    </>
-    )
+    );
 }
 
 export default Header
