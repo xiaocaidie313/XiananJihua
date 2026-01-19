@@ -23,7 +23,11 @@ function Header() {
     };
 
     return (
-        <div className="header-container">
+        <div 
+            className={location.pathname.includes('shortvideo/details') ? 'header-container-vedio' : 'header-container'}
+        
+        
+        >
             {
                 location.pathname !== '/home' && (
                     <div 

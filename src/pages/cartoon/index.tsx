@@ -2,11 +2,12 @@ import Header from '../../components/header/index';
 import { Carousel } from 'antd';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setCurrentIndex } from '../../features/carousel/carousleSlice';
-import image01 from '@/assets/images/carousel/01.jpg';
 import NewsCardOutline from '@/components/newcardoutLine';
+import { getSixNews } from '@/features/news/newsSlice';
 function Cartoon() {
     const images = useAppSelector((state) => state.carousel.images);
     const currentIndex = useAppSelector((state) => state.carousel.currentIndex);
+    const sixNews = useAppSelector(getSixNews);
     const dispatch = useAppDispatch();
     const handleChange = (index: number) => {
         dispatch(setCurrentIndex(index));
@@ -92,8 +93,8 @@ function Cartoon() {
             }}
             >
 
-            {Array.from({length: 6}).map((_, index) => (
-                <NewsCardOutline key={index} image={image01} text={'我是text'} />
+            {sixNews.map((news) => (
+                <NewsCardOutline key={news.id} news={news} />
             ))}
 
             </div>

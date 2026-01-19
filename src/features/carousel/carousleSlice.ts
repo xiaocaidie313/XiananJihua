@@ -1,9 +1,5 @@
 import { createSlice} from "@reduxjs/toolkit";
-// 导入图片（Vite 中需要这样导入静态资源）
-import image01 from '@/assets/images/carousel/01.jpg';
-import image02 from '@/assets/images/carousel/02.jpg';
-import image03 from '@/assets/images/carousel/03.jpg';
-
+import { carousles } from "@/mock/carousles";
 // 定义图片的类型
 interface CarouselImage {
     id: number;
@@ -18,20 +14,7 @@ interface CarouselState {
 
 // 初始状态
 const initialState: CarouselState = {
-    images: [
-        {
-            id: 1,
-            url: image01,
-        },
-        {
-            id: 2,
-            url: image02,
-        },
-        {
-            id: 3,
-            url: image03,
-        },
-    ],
+    images: carousles,
     currentIndex: 0,
 };
 
@@ -62,5 +45,11 @@ const carouselSlice = createSlice({
 // 导出 actions（用于在组件中调用）
 export const { setImages, setCurrentIndex, nextImage, prevImage } = carouselSlice.actions;
 
+// ✅ Selector 应该接收全局 RootState
+import type { RootState } from "@/store";
+export const getCarouselImages = (state: RootState) => state.carousel.images;
+export const getCarouselCurrentIndex = (state: RootState) => state.carousel.currentIndex;
+
 // 导出 reducer（用于在 store 中使用）
 export default carouselSlice.reducer;
+export type { CarouselImage, CarouselState };

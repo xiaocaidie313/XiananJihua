@@ -1,9 +1,17 @@
-function NewsCardOutline(props){
-    const {image, text=''} = props;
+import { useNavigate } from 'react-router-dom';
+import type { New } from '@/features/news/newsSlice';
 
+function NewsCardOutline(props: { news: New }) {
+    const { news } = props;
+    const { title, cover, id } = news; 
+    const navigate = useNavigate();
+    
     return (
         <>
-        <div style={{
+        <div 
+        onClick={() => navigate(`/news/${id}`)}
+        style={{
+            cursor: 'pointer',
             width:'100%',
             height:'100px',
             display:'flex',
@@ -18,13 +26,15 @@ function NewsCardOutline(props){
                 height:'100%',
                 backgroundColor:'#FFFCFF',
                 display:'flex',
-                alignItems:'center',
+                alignItems:'start',
                 justifyContent:'center',
-                padding:'0 2.5px 0 0',
+                padding:'15px 5px 0 10px',
                 // borderRadius:'3px',
-
+                textAlign:'left',
+                color:'#333',
+                lineHeight:'1.5',
             }}>
-                <span>{text}</span>
+                <span>{title}</span>
             </div>
             {/* 图片展示 */}
             <div style={{
@@ -37,9 +47,9 @@ function NewsCardOutline(props){
 
                 alignItems:'center',
                 justifyContent:'center',
-                backgroundColor:'red',
+                backgroundColor:'#FFFCFF',
             }}>
-                <img src={image} alt="" style={{
+                <img src={cover} alt="" style={{
                     width:'100%',
                     height:'100%',
                     objectFit:'cover',

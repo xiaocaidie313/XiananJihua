@@ -7,7 +7,9 @@ import podcast from "@/assets/images/icon/podcast.svg";
 import play from "@/assets/images/icon/play.svg";
 import search from "@/assets/images/icon/search.svg";
 import send from "@/assets/images/icon/up.svg";
-
+import support from "@/assets/images/icon/support.svg";
+import like from "@/assets/images/icon/like.svg";
+import comment from "@/assets/images/icon/comment.svg";
 function HomeIcon(props?: { style?: React.CSSProperties }) {
   const { style } = props || {};
   return (
@@ -115,6 +117,38 @@ function SendIcon() {
   );
 }
 
+function SupportIcon(props?: { style?: React.CSSProperties }) {
+  const { style } = props || {};
+  return (
+    <>
+      <div style={{ width: "25px", height: "25px", ...style }}>
+        <img src={support} alt="" />
+      </div>
+    </>
+  );
+}
+
+function LikeIcon(props?: { style?: React.CSSProperties }) {
+  const { style } = props || {};
+  return (
+    <>
+      <div style={{ width: "25px", height: "25px", ...style }}>
+        <img src={like} alt="" />
+      </div>
+    </>
+  );
+}
+
+function CommentIcon(props?: { style?: React.CSSProperties }) {
+  const { style } = props || {};
+  return (
+    <>
+      <div style={{ width: "25px", height: "25px", ...style }}>
+        <img src={comment} alt="" />
+      </div>
+    </>
+  );
+}
 export {
   HomeIcon,
   WarnIcon,
@@ -125,4 +159,7 @@ export {
   ShortVideoIcon,
   SearchIcon,
   SendIcon,
+  SupportIcon,
+  LikeIcon,
+  CommentIcon,
 };
