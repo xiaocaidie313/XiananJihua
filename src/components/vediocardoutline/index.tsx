@@ -1,13 +1,19 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import type { Vedio } from '@/features/vedios/vediosSlice';
 
 function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
     const { id, title, author, cover } = vedio;
     const navigate = useNavigate();
+    const location = useLocation();
     return (
-        <div 
-            onClick={() => navigate(`/shortvideo/details/${id}`)}
+        <div
+            onClick={() => navigate(`/shortvideo/details/${id}`, {
+                // replace: true,
+                state: {
+                    backgroundLocation: location
+                }
+            })}
             style={{
                 width: '100%',
                 height: '280px',

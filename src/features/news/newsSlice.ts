@@ -1,5 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { news } from "@/mock/news";
+import type { RootState } from "@/store";
 
 interface New {
     id:number;
@@ -32,13 +33,17 @@ const newsSlice = createSlice({
 })
 
 // selector
-import type { RootState } from "@/store";
-export const getAllNews = (state: RootState) => state.news.news;
+const selectNews = (state: RootState) => state.news.news;
 
-export const getNewsById = (state: RootState, id: number) => 
-    state.news.news.find(item => item.id === id);
+export const getAllNews = selectNews;
 
-export const getSixNews = (state: RootState) => state.news.news.slice(0, 6);
+export const getNewsById = (state: RootState, id: number) =>
+    selectNews(state).find(item => item.id === id);
+
+export const getSixNews = createSelector(
+    [selectNews],
+    (newsItems) => newsItems.slice(0, 6)
+);
 
 export default newsSlice.reducer;
 export type { NewsState, New };

@@ -17,11 +17,14 @@ import coverImage from '@/assets/images/carousel/01.jpg';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '@/store/hooks';
 import { getFirstPodcast } from '@/features/podcast/podcastSlice';
+import './index.css';
 
 function Podcast() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isEntering, setIsEntering] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isBack, setIsBack] = useState(false)
   const navigate = useNavigate();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -35,6 +38,14 @@ function Podcast() {
   ];
 
   useEffect(() => {
+    // 挂载后立即触发进入动画
+    const timer = setTimeout(() => {
+      setIsEntering(false);
+    }, 10);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     if (isPlaying) {
@@ -44,6 +55,15 @@ function Podcast() {
     }
   }, [isPlaying]);
 
+  const handleBack = () => {
+    console.log('handleBack is clicked')
+    setIsBack(true)
+    setTimeout(() => {
+      navigate(-1)
+      setIsBack(false)
+    }, 300)
+  }
+  
   const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -90,6 +110,9 @@ function Podcast() {
 
   return (
     <div
+      className={`podcast-page 
+      ${isEntering ? 'is-entering' : ''}
+      ${isBack ? 'click-back' : ''}`}
       style={{
         width: '100%',
         minHeight: '100vh',
@@ -115,7 +138,7 @@ function Podcast() {
           marginBottom: '24px',
         }}
       >
-        <DownOutlined onClick={() => navigate(-1)} style={{ fontSize: '20px' }} />
+        <DownOutlined onClick={() => handleBack()} style={{ fontSize: '20px' }} />
         <ShareAltOutlined style={{ fontSize: '20px' }} />
       </div>
 

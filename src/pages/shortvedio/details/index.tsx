@@ -1,20 +1,31 @@
 import Header from "@/components/header";
 import { Avatar } from "antd";
-import { 
-    HeartFilled, 
-    MessageFilled, 
-    ShareAltOutlined, 
+import {
+    HeartFilled,
+    MessageFilled,
+    ShareAltOutlined,
     PlusOutlined,
-    UserOutlined 
+    UserOutlined
 } from "@ant-design/icons";
 import image from '@/assets/images/carousel/01.jpg';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAppSelector } from "@/store/hooks";
 import { getVedioById } from "@/features/vedios/vediosSlice";
+import { useState } from 'react';
 
 function Vedios() {
+    const navigate = useNavigate();
     const { id } = useParams();
+    const [isBack, setIsBack] = useState(false);
     const vedio = useAppSelector(state => getVedioById(state, Number(id)));
+    const location = useLocation();
+    const handleBack = () => {
+        setIsBack(true);
+        setTimeout(() => {
+            navigate('/shortvideo', { state: { fromDetails: true } });
+            setIsBack(false);
+        }, 300);
+    };
 
     if (!vedio) return <div style={{ color: 'white', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
 
@@ -23,12 +34,17 @@ function Vedios() {
             width: '100%',
             height: '100vh',
             backgroundColor: '#000',
-            position: 'relative',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            zIndex: 6000,
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
+            transition: 'transform 0.3s ease-in-out',
+            transform: isBack ? 'translateX(100%)' : 'translateX(0)',
         }}>
-            <Header />
+            <Header handleBack={handleBack} />
 
             {/* 视频播放区域 (这里用图片模拟视频) */}
             <div style={{
@@ -78,12 +94,13 @@ function Vedios() {
                 }}>
                     {/* 头像 */}
                     <div style={{ position: 'relative', marginBottom: '10px' }}>
-                        <Avatar 
+                        <Avatar
                             size={50}
-                            icon={<UserOutlined />} 
-                            style={{ 
+                            icon={<UserOutlined />}
+                            style={{
                                 backgroundColor: '',
-                                border: '2px solid white' }}
+                                border: '2px solid white'
+                            }}
                         />
                         <div style={{
                             position: 'absolute',
@@ -132,23 +149,23 @@ function Vedios() {
                     maxWidth: '70%',
                     zIndex: 10,
                 }}>
-                    <div style={{ 
-                        fontSize: '18px', 
-                        fontWeight: 'bold', 
-                        marginBottom: '8px' 
+                    <div style={{
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        marginBottom: '8px'
                     }}>
                         @{vedio.author}
                     </div>
-                    <div style={{ 
-                        fontSize: '15px', 
+                    <div style={{
+                        fontSize: '15px',
                         lineHeight: '1.4',
                         marginBottom: '10px'
                     }}>
                         {vedio.title} #心理健康 #正能量 #缓解焦虑
                     </div>
-                    <div style={{ 
-                        fontSize: '13px', 
-                        display: 'flex', 
+                    <div style={{
+                        fontSize: '13px',
+                        display: 'flex',
                         alignItems: 'center',
                         opacity: 0.8
                     }}>

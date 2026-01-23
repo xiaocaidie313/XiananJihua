@@ -1,0 +1,15 @@
+.podcast-page{
+    transform: translateY(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* 进入动效：初始在底部 */
+.podcast-page.is-entering {
+    transform: translateY(100%);
+    transition: transform 0.1s ease-in-out;
+}
+
+/* 返回动效：滑向底部 */
+.podcast-page.click-back{
+    transform: translateY(100%);
+}

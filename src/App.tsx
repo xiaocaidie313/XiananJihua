@@ -1,5 +1,6 @@
 import Footer from "./components/footer";
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import type { Location } from 'react-router-dom';
 import Home from "./pages/home";
 import Warn from "./pages/warn";
 import Chat from "./pages/chat";
@@ -9,12 +10,14 @@ import Cartoon from "./pages/cartoon";
 import Podcast from "./pages/podcast";
 import News from "./pages/news";
 import Vedios from "./pages/shortvedio/details";
-import { useLocation } from 'react-router-dom';
-
 function App() {
   const location = useLocation();
+  const state = location?.state as { backgroundLocation?:Location }
+  const backgroundLocation = state?.backgroundLocation || null
   const shouldShowFooter = !['/chat', '/shortvideo/details'].some(path => location.pathname.includes(path));
   const isWarnPage = location.pathname === '/warn';
+  const overlayPaths = ['/podcast', '/cartoon', '/shortvideo', '/shortvideo/details'];
+  const shouldShowOverlay = Boolean(backgroundLocation) && overlayPaths.some(path => location.pathname.startsWith(path));
 
   return (
     <>
@@ -27,7 +30,7 @@ function App() {
             paddingBottom: (shouldShowFooter && !isWarnPage) ? '120px' : '0' 
           }}
         >
-          <Routes>
+          <Routes location={backgroundLocation || location}>  
             <Route path="/" element={<Navigate to="/home" />}></Route>
             <Route path="/home" element={<Home />}></Route>
             <Route path="/warn" element={<Warn />}></Route>
@@ -40,8 +43,20 @@ function App() {
             <Route path="/podcast" element={<Podcast />}></Route>
             <Route path="*" element={<Navigate to="/" />}></Route>
           </Routes>
+
         </main>
         {shouldShowFooter && <Footer />}
+        {shouldShowOverlay && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 5000 }}>
+            <Routes>
+              <Route path="/podcast" element={<Podcast />} />
+              <Route path="/cartoon" element={<Cartoon />} />
+              <Route path="/shortvideo" element={<ShortVideo />} />
+              {/* <Route path="/home" element={<Home />} /> */}
+              <Route path="/shortvideo/details/:id" element={<Vedios />} />
+            </Routes>
+          </div>
+        )}
       </div>
     </>
   );

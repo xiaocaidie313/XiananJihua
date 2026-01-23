@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { SearchIcon } from '../icon';
-import { useLocation , useNavigate} from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LeftOutlined } from '@ant-design/icons';
 import './index.css';
 
-function Header() {
+interface HeaderProps {
+    handleBack?: () => void;
+}
+
+function Header({ handleBack }: HeaderProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const [searchValue, setSearchValue] = useState('');
@@ -31,7 +35,13 @@ function Header() {
             {
                 location.pathname !== '/home' && (
                     <div 
-                    onClick={() => navigate(-1)}
+                    onClick={() => {
+                        if (handleBack) {
+                            handleBack();
+                            return;
+                        }
+                        navigate(-1);
+                    }}
                     style={{
                         width:'10%',
                         display:'flex',
