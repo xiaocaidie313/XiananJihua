@@ -12,12 +12,16 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAppSelector } from "@/store/hooks";
 import { getVedioById } from "@/features/vedios/vediosSlice";
 import { useState } from 'react';
+import './index.css';
+import CommentField from "@/components/commentfield";
 
 function Vedios() {
     const navigate = useNavigate();
     const { id } = useParams();
     const [isBack, setIsBack] = useState(false);
     const vedio = useAppSelector(state => getVedioById(state, Number(id)));
+    const [like, setLike] = useState(false);
+    const [riseComment, setRiseComment] = useState(false);
     const location = useLocation();
     const handleBack = () => {
         setIsBack(true);
@@ -123,15 +127,22 @@ function Vedios() {
 
                     {/* 点赞 */}
                     <div style={{ textAlign: 'center', color: 'white' }}>
-                        <HeartFilled style={{ fontSize: '35px', color: '#FF2C55' }} />
+                            <HeartFilled className={`like-icon ${like ? 'like-icon-active' : ''}`}  
+                        onClick={() => setLike(!like)}
+                        />
                         <div style={{ fontSize: '12px', marginTop: '5px' }}>12.5w</div>
                     </div>
 
                     {/* 评论 */}
-                    <div style={{ textAlign: 'center', color: 'white' }}>
-                        <MessageFilled style={{ fontSize: '35px' }} />
+                    <div style={{ textAlign: 'center', color: 'white' }} onClick={() => setRiseComment(true)}>
+                        <MessageFilled style={{ fontSize: '35px', cursor: 'pointer' }} />
                         <div style={{ fontSize: '12px', marginTop: '5px' }}>8562</div>
                     </div>
+
+                    <CommentField 
+                        visible={riseComment} 
+                        onClose={() => setRiseComment(false)} 
+                    />
 
                     {/* 分享 */}
                     <div style={{ textAlign: 'center', color: 'white' }}>

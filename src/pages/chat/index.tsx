@@ -4,7 +4,7 @@ import BottomInput from './components/bottomInput';
 import Header from './components/header';
 
 // 消息数据类型
-interface Message {
+export interface Message {
     id: number;
     message: string;
     role: 'user' | 'assistant';
@@ -12,8 +12,10 @@ interface Message {
 }
 
 function Chat() {
+
+    const [inputValue,setInputValue] = useState('');
     // 示例消息列表
-    const [messages] = useState<Message[]>([
+    const [messages,setMessages] = useState<Message[]>([
         {
             id: 1,
             message: '你好，我是小安，很高兴认识你',
@@ -49,7 +51,7 @@ function Chat() {
                 style={{
                     height: 'calc(100vh - 50px - 100px)', // Header 50px + BottomInput 100px
                     overflowY: 'auto',
-                    paddingTop: '50px', // Header 高度
+                    paddingTop: '50px', // Header 高度  
                     paddingBottom: '100px', // BottomInput 高度
                     display: 'flex',
                     flexDirection: 'column',
@@ -65,7 +67,7 @@ function Chat() {
                 ))}
             </div>
             
-            <BottomInput />
+            <BottomInput messages={messages} inputValue={inputValue} setInputValue={setInputValue} setMessages={setMessages} />
         </div>
     );
 }

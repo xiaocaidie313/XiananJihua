@@ -97,7 +97,7 @@ function SearchIcon() {
   );
 }
 
-function SendIcon() {
+function SendIcon({ onClick }: { onClick: () => void }) {
   return (
     <>
       <div
@@ -110,6 +110,7 @@ function SendIcon() {
           alignItems: "center",
           justifyContent: "center",
         }}
+        onClick={onClick}
       >
         <img src={send} alt="" style={{ width: "20px", height: "20px" }} />
       </div>
