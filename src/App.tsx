@@ -6,7 +6,9 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Cartoon from './pages/cartoon'
 import Chat from './pages/chat'
 import Home from './pages/home'
+import LoginPage from './pages/login'
 import Me from './pages/me'
+import ArticlePage from './pages/article'
 import News from './pages/news'
 import Podcast from './pages/podcast'
 import ShortVideo from './pages/shortvedio'
@@ -16,8 +18,10 @@ import Warn from './pages/warn'
 function App() {
   const location = useLocation()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const shouldShowFooter = !location.pathname.startsWith('/chat')
-  const shouldShowSidebar = !location.pathname.startsWith('/chat')
+  const isChatPage = location.pathname.startsWith('/chat')
+  const isLoginPage = location.pathname.startsWith('/login')
+  const shouldShowFooter = !isChatPage && !isLoginPage
+  const shouldShowSidebar = !isChatPage && !isLoginPage
 
   return (
     <div className="app-shell">
@@ -32,8 +36,10 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/home" element={<Home />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/warn" element={<Warn />} />
               <Route path="/chat" element={<Chat />} />
+              <Route path="/article" element={<ArticlePage />} />
               <Route path="/news/:id" element={<News />} />
               <Route path="/me" element={<Me />} />
               <Route path="/shortvideo" element={<ShortVideo />} />

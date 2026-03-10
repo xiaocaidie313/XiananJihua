@@ -7,6 +7,7 @@ function Footer() {
   const links = [
     { label: '首页', path: '/home' },
     { label: '短视频', path: '/shortvideo' },
+    { label: '文章', path: '/article' },
     { label: '条漫', path: '/cartoon' },
     { label: '播客', path: '/podcast' },
     { label: 'AI 对话', path: '/chat' },

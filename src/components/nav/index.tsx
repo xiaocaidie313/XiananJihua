@@ -1,4 +1,4 @@
-import { ArrowRightOutlined } from '@ant-design/icons'
+import { ArrowRightOutlined, ReadOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { CartoonIcon, PodcastIcon, ShortVideoIcon } from '../icon'
 
@@ -10,6 +10,12 @@ function Nav() {
       description: '接近 YouTube 的视频内容流和播放页',
       path: '/shortvideo',
       icon: <ShortVideoIcon />,
+    },
+    {
+      name: '文章',
+      description: '沿用条漫频道结构，把原来的新闻统一收进文章频道',
+      path: '/article',
+      icon: <ReadOutlined style={{ fontSize: '22px', color: '#5b4bdb' }} />,
     },
     {
       name: '条漫',

@@ -1,23 +1,34 @@
-import { Carousel } from 'antd';
-import NewsCardOutline from '../../components/newcardoutLine';
-import { getSixNews } from '@/features/news/newsSlice';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { getCarouselImages, setCurrentIndex } from '@/features/carousel/carousleSlice';
-import { useEffect } from 'react';
-import './index.css';
+import { Carousel } from 'antd'
+import { useEffect, useMemo } from 'react'
+import NewsCardOutline from '../../components/newcardoutLine'
+import { getSixNews } from '@/features/news/newsSlice'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { getCarouselImages, setCurrentIndex } from '@/features/carousel/carousleSlice'
+import './index.css'
 
 function Cartoon() {
-  const images = useAppSelector(getCarouselImages);
-  const sixNews = useAppSelector(getSixNews);
-  const dispatch = useAppDispatch();
+  const images = useAppSelector(getCarouselImages)
+  const sixNews = useAppSelector(getSixNews)
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
-    dispatch(setCurrentIndex(0));
-  }, [dispatch]);
+    dispatch(setCurrentIndex(0))
+  }, [dispatch])
+
+  const articleItems = useMemo(() => {
+    return sixNews.map((news) => ({
+      id: news.id,
+      title: news.title,
+      cover: news.cover,
+      author: news.author,
+      description: '小安文章频道 · 点击查看详情与正文内容',
+      meta: `${news.time.year}-${String(news.time.month).padStart(2, '0')}-${String(news.time.day).padStart(2, '0')}`,
+    }))
+  }, [sixNews])
 
   const handleChange = (index: number) => {
-    dispatch(setCurrentIndex(index));
-  };
+    dispatch(setCurrentIndex(index))
+  }
 
   return (
     <div className="page-shell cartoon-page">
@@ -86,8 +97,8 @@ function Cartoon() {
           </div>
         </div>
         <div className="feed-list">
-          {sixNews.map((news) => (
-            <NewsCardOutline key={news.id} news={news} />
+          {articleItems.map((item) => (
+            <NewsCardOutline key={item.id} item={item} />
           ))}
         </div>
       </section>
@@ -95,4 +106,4 @@ function Cartoon() {
   )
 }
 
-export default Cartoon;
+export default Cartoon

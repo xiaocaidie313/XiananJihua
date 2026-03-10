@@ -14,7 +14,7 @@ function Header({ handleBack, isSidebarCollapsed = false, onToggleSidebar }: Hea
   const location = useLocation()
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
-  const topLevelPaths = new Set(['/home', '/shortvideo', '/cartoon', '/podcast', '/warn', '/chat', '/me'])
+  const topLevelPaths = new Set(['/home', '/shortvideo', '/article', '/cartoon', '/podcast', '/warn', '/chat', '/me', '/login'])
   const showBackButton = !topLevelPaths.has(location.pathname)
   const compactSearch = location.pathname.startsWith('/news/') || location.pathname.startsWith('/shortvideo/details/')
 

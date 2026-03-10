@@ -1,18 +1,72 @@
-import { Carousel } from 'antd';
-import Nav from '../../components/nav';
-import NewsCardOutline from '../../components/newcardoutLine';
-import { getSixNews } from '@/features/news/newsSlice';
-import { useAppSelector } from '@/store/hooks';
-import { getCarouselImages } from '@/features/carousel/carousleSlice';
-import { getAllVedios } from '@/features/vedios/vediosSlice';
-import VedioCardOutline from '@/components/vediocardoutline';
+import { useEffect, useMemo, useState } from 'react'
+import { Carousel } from 'antd'
+import { getNewArticles } from '@/api/content'
+import Nav from '../../components/nav'
+import NewsCardOutline, { type NewsCardItem } from '../../components/newcardoutLine'
+import { getSixNews } from '@/features/news/newsSlice'
+import { useAppSelector } from '@/store/hooks'
+import { getCarouselImages } from '@/features/carousel/carousleSlice'
+import { getAllVedios } from '@/features/vedios/vediosSlice'
+import type { ArticleSummary } from '@/constants/content'
+import { getErrorMessage, unwrapResponse } from '@/utils/appState'
+import VedioCardOutline from '@/components/vediocardoutline'
 
 function Home() {
-  const sixNews = useAppSelector(getSixNews);
-  const images = useAppSelector(getCarouselImages);
-  const vedios = useAppSelector(getAllVedios);
-  const recommendNews = sixNews.slice(0, 3);
-  const filters = ['全部', '推荐', '安全科普', '校园话题', '成长陪伴', '心理健康'];
+  const sixNews = useAppSelector(getSixNews)
+  const images = useAppSelector(getCarouselImages)
+  const vedios = useAppSelector(getAllVedios)
+  const filters = ['全部', '推荐', '安全科普', '校园话题', '成长陪伴', '心理健康']
+  const [articles, setArticles] = useState<ArticleSummary[]>([])
+  const [articleError, setArticleError] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    const loadArticles = async () => {
+      try {
+        const response = await getNewArticles({ page_size: 6, cursor: 0 })
+        const data = unwrapResponse(response)
+        if (active) {
+          setArticles(data.articles || [])
+          setArticleError('')
+        }
+      } catch (error) {
+        if (active) {
+          setArticleError(getErrorMessage(error, '文章接口加载失败，已展示本地内容'))
+        }
+      }
+    }
+
+    void loadArticles()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const articleItems = useMemo<NewsCardItem[]>(() => {
+    if (articles.length) {
+      return articles.map((article) => ({
+        id: article.article_id,
+        title: article.name,
+        cover: article.cover,
+        author: article.author,
+        description: article.description || '小安文章频道 · 点击查看详情与正文内容',
+        meta: `${Math.max(article.view_count || 0, 0)} 次阅读`,
+      }))
+    }
+
+    return sixNews.map((news) => ({
+      id: news.id,
+      title: news.title,
+      cover: news.cover,
+      author: news.author,
+      description: '小安文章频道 · 点击查看详情与正文内容',
+      meta: `${news.time.year}-${String(news.time.month).padStart(2, '0')}-${String(news.time.day).padStart(2, '0')}`,
+    }))
+  }, [articles, sixNews])
+
+  const recommendNews = articleItems.slice(0, 3)
 
   return (
     <div className="page-shell">
@@ -116,13 +170,18 @@ function Home() {
           <section className="surface-card" style={{ padding: '20px' }}>
             <div className="section-head">
               <div>
-                <div className="section-title">最新资讯</div>
-                <div className="section-meta">保留原有资讯接口与页面，改成更像视频平台的列表推荐区</div>
+                <div className="section-title">最新文章</div>
+                <div className="section-meta">首页优先读取真实文章接口，失败时回退到原有新闻内容</div>
               </div>
             </div>
+            {articleError && (
+              <div style={{ marginBottom: '16px', fontSize: '13px', color: '#b45309' }}>
+                {articleError}
+              </div>
+            )}
             <div className="feed-list">
-              {sixNews.map((news, index) => (
-                <NewsCardOutline news={news} key={index} />
+              {articleItems.map((item) => (
+                <NewsCardOutline item={item} key={item.id} />
               ))}
             </div>
           </section>
@@ -166,7 +225,7 @@ function Home() {
         </aside>
       </section>
     </div>
-  );
+  )
 }
 
-export default Home;
+export default Home

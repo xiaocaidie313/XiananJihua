@@ -1,15 +1,21 @@
-import { useNavigate } from 'react-router-dom';
-import type { New } from '@/features/news/newsSlice';
+import { useNavigate } from 'react-router-dom'
 
-function NewsCardOutline(props: { news: New }) {
-  const { news } = props
-  const { title, cover, id } = news
+export interface NewsCardItem {
+  id: number
+  title: string
+  cover: string
+  description?: string
+  author?: string
+  meta?: string
+}
+
+function NewsCardOutline({ item }: { item: NewsCardItem }) {
   const navigate = useNavigate()
 
   return (
     <article
       className="hover-rise"
-      onClick={() => navigate(`/news/${id}`)}
+      onClick={() => navigate(`/news/${item.id}`)}
       style={{
         cursor: 'pointer',
         width: '100%',
@@ -29,7 +35,7 @@ function NewsCardOutline(props: { news: New }) {
         }}
       >
         <img
-          src={cover}
+          src={item.cover}
           alt=""
           style={{
             width: '100%',
@@ -51,10 +57,22 @@ function NewsCardOutline(props: { news: New }) {
             overflow: 'hidden',
           }}
         >
-          {title}
+          {item.title}
         </div>
-        <div style={{ fontSize: '14px', color: '#606060', lineHeight: 1.6 }}>
-          小安资讯频道 · 点击查看详情与正文内容
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {item.author && (
+            <div style={{ fontSize: '13px', color: '#606060', fontWeight: 500 }}>
+              {item.author}
+            </div>
+          )}
+          <div style={{ fontSize: '14px', color: '#606060', lineHeight: 1.6 }}>
+            {item.description || '小安文章频道 · 点击查看详情与正文内容'}
+          </div>
+          {item.meta && (
+            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+              {item.meta}
+            </div>
+          )}
         </div>
       </div>
     </article>

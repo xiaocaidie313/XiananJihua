@@ -61,4 +61,5 @@ export function setChatSession(session: SessionType) {
 export function clearLoginInfo() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
+  localStorage.removeItem(CHAT_SESSION_KEY)
 }
