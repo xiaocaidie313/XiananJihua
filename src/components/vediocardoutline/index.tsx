@@ -3,9 +3,10 @@ import { PlayCircleOutlined } from '@ant-design/icons';
 import type { Vedio } from '@/features/vedios/vediosSlice';
 
 function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
-  const { id, title, author, cover } = vedio;
+  const { id, title, author, cover, time } = vedio;
   const navigate = useNavigate();
   const location = useLocation();
+  const publishedText = `${time.year}-${String(time.month).padStart(2, '0')}-${String(time.day).padStart(2, '0')}`;
 
   return (
     <article
@@ -66,8 +67,8 @@ function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
       >
         <div
           style={{
-            width: '36px',
-            height: '36px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
             background: '#f2f2f2',
             display: 'flex',
@@ -84,7 +85,7 @@ function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
         <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div
             style={{
-              fontSize: '16px',
+              fontSize: '15px',
               fontWeight: 600,
               color: '#0f0f0f',
               lineHeight: 1.45,
@@ -96,8 +97,8 @@ function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
           >
             {title}
           </div>
-          <div style={{ fontSize: '14px', color: '#606060' }}>{author}</div>
-          <div style={{ fontSize: '13px', color: '#606060' }}>12万次观看 · 推荐内容</div>
+          <div style={{ fontSize: '13px', color: '#606060' }}>{author}</div>
+          <div style={{ fontSize: '13px', color: '#606060' }}>12万次观看 · {publishedText}</div>
         </div>
       </div>
     </article>

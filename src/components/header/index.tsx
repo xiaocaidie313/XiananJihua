@@ -1,4 +1,4 @@
-import { BellOutlined, LeftOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons'
+import { LeftOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons'
 import { SearchIcon } from '../icon'
 import { useState, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -6,9 +6,11 @@ import './index.css'
 
 interface HeaderProps {
   handleBack?: () => void
+  isSidebarCollapsed?: boolean
+  onToggleSidebar?: () => void
 }
 
-function Header({ handleBack }: HeaderProps) {
+function Header({ handleBack, isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
@@ -32,7 +34,11 @@ function Header({ handleBack }: HeaderProps) {
     <header className="header-container">
       <div className="header-inner">
         <div className="header-left">
-          <button className="header-icon-button" type="button">
+          <button
+            className={`header-icon-button${isSidebarCollapsed ? ' is-active' : ''}`}
+            onClick={onToggleSidebar}
+            type="button"
+          >
             <MenuOutlined />
           </button>
           {showBackButton && (
@@ -52,8 +58,8 @@ function Header({ handleBack }: HeaderProps) {
             </button>
           )}
           <button className="header-brand" onClick={() => navigate('/home')} type="button">
-            <span className="header-brand-mark">▶</span>
-            <span className="header-brand-text">小安Tube</span>
+            <img className="header-brand-logo" src="/xiaoan.svg" alt="小安" />
+            <span className="header-brand-text">小安</span>
           </button>
         </div>
 
@@ -77,9 +83,6 @@ function Header({ handleBack }: HeaderProps) {
         <div className="header-actions">
           <button className="header-action subtle" onClick={() => navigate('/shortvideo')} type="button">
             上传
-          </button>
-          <button className="header-icon-button" onClick={() => navigate('/chat')} type="button">
-            <BellOutlined />
           </button>
           <button className="header-icon-button" onClick={() => navigate('/me')} type="button">
             <UserOutlined />

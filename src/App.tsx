@@ -1,6 +1,7 @@
 import Footer from './components/footer'
 import Header from './components/header'
 import Sidebar from './components/sidebar'
+import { useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Cartoon from './pages/cartoon'
 import Chat from './pages/chat'
@@ -14,15 +15,19 @@ import Warn from './pages/warn'
 
 function App() {
   const location = useLocation()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const shouldShowFooter = !location.pathname.startsWith('/chat')
   const shouldShowSidebar = !location.pathname.startsWith('/chat')
 
   return (
     <div className="app-shell">
-      <Header />
+      <Header
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+      />
       <div className="app-content">
-        <div className={`app-layout${shouldShowSidebar ? '' : ' no-sidebar'}`}>
-          {shouldShowSidebar && <Sidebar />}
+        <div className={`app-layout${shouldShowSidebar ? '' : ' no-sidebar'}${isSidebarCollapsed ? ' is-collapsed' : ''}`}>
+          {shouldShowSidebar && <Sidebar collapsed={isSidebarCollapsed} />}
           <main className="app-main">
             <Routes>
               <Route path="/" element={<Navigate to="/home" />} />

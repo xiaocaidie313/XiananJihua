@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
   AlertOutlined,
   CompassOutlined,
@@ -9,7 +10,11 @@ import {
 } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-function Sidebar() {
+interface SidebarProps {
+  collapsed?: boolean
+}
+
+function Sidebar({ collapsed = false }: SidebarProps) {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -30,20 +35,21 @@ function Sidebar() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`)
   }
 
-  const renderButton = (label: string, path: string, icon: React.ReactNode) => (
+  const renderButton = (label: string, path: string, icon: ReactNode) => (
     <button
       key={path}
-      className={`yt-sidebar-item${isActive(path) ? ' is-active' : ''}`}
+      className={`yt-sidebar-item${isActive(path) ? ' is-active' : ''}${collapsed ? ' is-collapsed' : ''}`}
       onClick={() => navigate(path)}
+      title={collapsed ? label : undefined}
       type="button"
     >
       <span className="yt-sidebar-item__icon">{icon}</span>
-      <span className="yt-sidebar-item__label">{label}</span>
+      {!collapsed && <span className="yt-sidebar-item__label">{label}</span>}
     </button>
   )
 
   return (
-    <aside className="yt-sidebar">
+    <aside className={`yt-sidebar${collapsed ? ' is-collapsed' : ''}`}>
       <div className="yt-sidebar-section">
         {primaryItems.map((item) => renderButton(item.label, item.path, item.icon))}
       </div>
@@ -51,7 +57,7 @@ function Sidebar() {
       <div className="yt-sidebar-divider" />
 
       <div className="yt-sidebar-section">
-        <div className="yt-sidebar-title">更多功能</div>
+        {!collapsed && <div className="yt-sidebar-title">更多功能</div>}
         {utilityItems.map((item) => renderButton(item.label, item.path, item.icon))}
       </div>
     </aside>

@@ -1,3 +1,336 @@
 .shortvideo-page {
-  gap: 20px;
+  width: 100%;
+  height: calc(100dvh - 64px - 24px);
+  min-height: 680px;
+  margin-top: -20px;
+  margin-bottom: -40px;
+}
+
+.shortvideo-feed {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+
+.shortvideo-feed::-webkit-scrollbar {
+  display: none;
+}
+
+.shortvideo-slide {
+  width: 100%;
+  height: calc(100dvh - 64px - 24px);
+  min-height: 680px;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 0;
+}
+
+.shortvideo-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: #000000;
+  box-shadow: none;
+  transition: grid-template-columns 0.28s ease;
+}
+
+.shortvideo-stage.is-active {
+  box-shadow: none;
+}
+
+.shortvideo-stage.has-comment-open {
+  grid-template-columns: minmax(0, 1fr) min(420px, 38vw);
+}
+
+.shortvideo-stage-main {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+  transition: transform 0.28s ease;
+}
+
+.shortvideo-stage.has-comment-open .shortvideo-stage-main {
+  transform: translateX(-22px) scale(0.94);
+  transform-origin: center center;
+}
+
+.shortvideo-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000000;
+}
+
+.shortvideo-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.shortvideo-overlay--bottom {
+  bottom: 0;
+  align-items: flex-end;
+  padding: 24px 28px 56px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.shortvideo-meta {
+  max-width: 58%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #ffffff;
+}
+
+.shortvideo-author {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.shortvideo-title {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.shortvideo-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.shortvideo-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 72px;
+  pointer-events: auto;
+}
+
+.shortvideo-author-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.72) 100%);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.shortvideo-author-avatar__inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #111827 0%, #334155 100%);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.shortvideo-action {
+  min-width: 62px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.shortvideo-action .anticon {
+  font-size: 24px;
+}
+
+.shortvideo-action span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.shortvideo-action:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.shortvideo-action.is-liked {
+  color: #ff4d67;
+}
+
+.shortvideo-action--play {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  justify-content: center;
+}
+
+.shortvideo-action--play .anticon {
+  font-size: 30px;
+}
+
+.shortvideo-action--play:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.shortvideo-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0;
+}
+
+.shortvideo-progress__track {
+  width: 100%;
+  height: 4px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.24);
+  overflow: hidden;
+}
+
+.shortvideo-progress__fill {
+  height: 100%;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.shortvideo-comment-drawer {
+  position: relative;
+  width: min(420px, 38vw);
+  background: rgba(255, 255, 255, 0.98);
+  color: #0f0f0f;
+  display: flex;
+  flex-direction: column;
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  transform: translateX(24px);
+  transition: transform 0.28s ease;
+  border-left: 1px solid rgba(15, 15, 15, 0.08);
+  box-shadow: -18px 0 40px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+}
+
+.shortvideo-comment-drawer.is-open {
+  transform: translateX(0);
+  width: min(420px, 38vw);
+  opacity: 1;
+}
+
+.shortvideo-comment-header {
+  min-height: 64px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.shortvideo-comment-close {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  color: #606060;
+}
+
+.shortvideo-comment-close:hover {
+  background: #f5f5f5;
+}
+
+.shortvideo-comment-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.shortvideo-comment-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.shortvideo-comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #111827 0%, #334155 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.shortvideo-comment-body {
+  min-width: 0;
+}
+
+.shortvideo-comment-user {
+  font-size: 13px;
+  color: #606060;
+  margin-bottom: 6px;
+}
+
+.shortvideo-comment-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #0f0f0f;
+}
+
+.shortvideo-comment-input {
+  padding: 14px 18px 18px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shortvideo-comment-input input {
+  flex: 1;
+  height: 38px;
+  border: none;
+  border-radius: 999px;
+  background: #f5f5f5;
+  padding: 0 16px;
+  outline: none;
+  font-size: 14px;
+}
+
+.shortvideo-comment-input button {
+  border: none;
+  background: transparent;
+  color: #ff4d67;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
 }

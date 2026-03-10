@@ -51,16 +51,40 @@ img {
 }
 
 .app-layout {
+  position: relative;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 24px;
   align-items: start;
   width: min(1600px, 100%);
   margin: 0 auto;
+  transition: grid-template-columns 0.25s ease;
+}
+
+.app-layout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 220px;
+  width: 1px;
+  background: #e5e5e5;
 }
 
 .app-layout.no-sidebar {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.app-layout.no-sidebar::before {
+  display: none;
+}
+
+.app-layout.is-collapsed {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.app-layout.is-collapsed::before {
+  left: 72px;
 }
 
 .app-main {
@@ -216,7 +240,14 @@ img {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 8px 0;
+  padding: 8px 16px 8px 0;
+  width: 220px;
+  transition: width 0.25s ease;
+}
+
+.yt-sidebar.is-collapsed {
+  width: 72px;
+  padding-right: 12px;
 }
 
 .yt-sidebar-section {
@@ -250,6 +281,10 @@ img {
   cursor: pointer;
   color: #0f0f0f;
   text-align: left;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    padding 0.25s ease;
 }
 
 .yt-sidebar-item:hover {
@@ -271,6 +306,11 @@ img {
 .yt-sidebar-item__label {
   font-size: 14px;
   font-weight: 500;
+}
+
+.yt-sidebar-item.is-collapsed {
+  justify-content: center;
+  padding: 0;
 }
 
 .yt-filter-row {
