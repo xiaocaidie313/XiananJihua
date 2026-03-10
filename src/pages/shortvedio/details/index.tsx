@@ -1,4 +1,3 @@
-import Header from "@/components/header";
 import { Avatar } from "antd";
 import {
     HeartFilled,
@@ -8,9 +7,9 @@ import {
     UserOutlined
 } from "@ant-design/icons";
 import image from '@/assets/images/carousel/01.jpg';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSelector } from "@/store/hooks";
-import { getVedioById } from "@/features/vedios/vediosSlice";
+import { getAllVedios, getVedioById } from "@/features/vedios/vediosSlice";
 import { useState } from 'react';
 import './index.css';
 import CommentField from "@/components/commentfield";
@@ -18,172 +17,177 @@ import CommentField from "@/components/commentfield";
 function Vedios() {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [isBack, setIsBack] = useState(false);
     const vedio = useAppSelector(state => getVedioById(state, Number(id)));
+    const allVedios = useAppSelector(getAllVedios);
     const [like, setLike] = useState(false);
     const [riseComment, setRiseComment] = useState(false);
-    const location = useLocation();
-    const handleBack = () => {
-        setIsBack(true);
-        setTimeout(() => {
-            navigate('/shortvideo', { state: { fromDetails: true } });
-            setIsBack(false);
-        }, 300);
-    };
+    const recommendVedios = allVedios.filter(item => item.id !== Number(id)).slice(0, 5);
 
-    if (!vedio) return <div style={{ color: 'white', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
+    if (!vedio) return <div style={{ color: '#334155', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
 
     return (
-        <div style={{
-            width: '100%',
-            height: '100vh',
-            backgroundColor: '#000',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            zIndex: 6000,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            transition: 'transform 0.3s ease-in-out',
-            transform: isBack ? 'translateX(100%)' : 'translateX(0)',
-        }}>
-            <Header handleBack={handleBack} />
-
-            {/* 视频播放区域 (这里用图片模拟视频) */}
-            <div style={{
-                flex: 1,
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-            }}>
-                <video
-                    src={vedio.url}
-                    controls
-                    autoPlay
-                    loop
-                    playsInline
-                    poster={vedio.cover || image}
-                    style={{
+        <div className="page-shell">
+            <div className="yt-watch-layout">
+                <section style={{ minWidth: 0 }}>
+                    <div style={{
                         width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        backgroundColor: '#000',
-                    }}
-                />
-
-                {/* 底部渐变遮罩 */}
-                <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: '30%',
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
-                    pointerEvents: 'none',
-                }} />
-
-                {/* 右侧交互按钮栏 */}
-                <div style={{
-                    position: 'absolute',
-                    right: '12px',
-                    bottom: '100px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '25px',
-                    zIndex: 10,
-                }}>
-                    {/* 头像 */}
-                    <div style={{ position: 'relative', marginBottom: '10px' }}>
-                        <Avatar
-                            size={50}
-                            icon={<UserOutlined />}
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        backgroundColor: '#020617',
+                    }}>
+                        <video
+                            src={vedio.url}
+                            controls
+                            autoPlay
+                            loop
+                            playsInline
+                            poster={vedio.cover || image}
                             style={{
-                                backgroundColor: '',
-                                border: '2px solid white'
+                                width: '100%',
+                                maxHeight: '760px',
+                                objectFit: 'contain',
+                                backgroundColor: '#000',
                             }}
                         />
+                    </div>
+
+                    <div style={{ marginTop: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1.35, color: '#0f0f0f' }}>{vedio.title}</div>
+
                         <div style={{
-                            position: 'absolute',
-                            bottom: '-10px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            backgroundColor: '#FF2C55',
-                            borderRadius: '50%',
-                            width: '20px',
-                            height: '20px',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontSize: '12px',
+                            justifyContent: 'space-between',
+                            gap: '16px',
+                            flexWrap: 'wrap',
                         }}>
-                            <PlusOutlined />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <div style={{ position: 'relative' }}>
+                                    <Avatar
+                                        size={46}
+                                        icon={<UserOutlined />}
+                                        style={{
+                                            border: '2px solid white',
+                                            boxShadow: '0 10px 24px rgba(15, 23, 42, 0.12)',
+                                        }}
+                                    />
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '-4px',
+                                        right: '-2px',
+                                        backgroundColor: '#ff0033',
+                                        borderRadius: '50%',
+                                        width: '20px',
+                                        height: '20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white',
+                                        fontSize: '11px',
+                                    }}>
+                                        <PlusOutlined />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f0f0f' }}>{vedio.author}</div>
+                                    <div style={{ marginTop: '4px', fontSize: '13px', color: '#606060' }}>12.8万位订阅者</div>
+                                </div>
+                                <button
+                                    style={{
+                                        height: '36px',
+                                        padding: '0 16px',
+                                        border: 'none',
+                                        borderRadius: '999px',
+                                        background: '#0f0f0f',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                    }}
+                                    type="button"
+                                >
+                                    订阅
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                <button className="yt-watch-action" onClick={() => setLike(!like)} type="button">
+                                    <HeartFilled className={`like-icon ${like ? 'like-icon-active' : ''}`} />
+                                    <span>12.5w</span>
+                                </button>
+                                <button className="yt-watch-action" onClick={() => setRiseComment(true)} type="button">
+                                    <MessageFilled />
+                                    <span>8562</span>
+                                </button>
+                                <button className="yt-watch-action" type="button">
+                                    <ShareAltOutlined />
+                                    <span>分享</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            className="surface-card"
+                            style={{
+                                padding: '18px 20px',
+                                background: '#f2f2f2',
+                                borderColor: '#ebebeb',
+                            }}
+                        >
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f0f0f' }}>12万次观看 · 2 天前</div>
+                            <div style={{ marginTop: '10px', fontSize: '14px', color: '#0f0f0f', lineHeight: 1.8 }}>
+                                @{vedio.author} · #心理健康 #正能量 #缓解焦虑
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '14px', color: '#606060' }}>原声 - {vedio.author} 的音乐花园</div>
                         </div>
                     </div>
+                </section>
 
-                    {/* 点赞 */}
-                    <div style={{ textAlign: 'center', color: 'white' }}>
-                            <HeartFilled className={`like-icon ${like ? 'like-icon-active' : ''}`}  
-                        onClick={() => setLike(!like)}
-                        />
-                        <div style={{ fontSize: '12px', marginTop: '5px' }}>12.5w</div>
+                <aside className="page-side-column">
+                    <div className="surface-card" style={{ padding: '18px' }}>
+                        <div className="section-title" style={{ fontSize: '18px', marginBottom: '14px' }}>接下来播放</div>
+                        <div className="yt-side-list">
+                            {recommendVedios.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => navigate(`/shortvideo/details/${item.id}`)}
+                                    style={{
+                                        width: '100%',
+                                        border: 'none',
+                                        background: 'transparent',
+                                        padding: 0,
+                                        textAlign: 'left',
+                                        cursor: 'pointer',
+                                    }}
+                                    type="button"
+                                >
+                                    <div style={{ display: 'grid', gridTemplateColumns: '168px minmax(0, 1fr)', gap: '10px' }}>
+                                        <img
+                                            src={item.cover}
+                                            alt={item.title}
+                                            style={{
+                                                width: '168px',
+                                                height: '94px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                            }}
+                                        />
+                                        <div style={{ minWidth: 0 }}>
+                                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f0f0f', lineHeight: 1.45 }}>{item.title}</div>
+                                            <div style={{ marginTop: '6px', fontSize: '12px', color: '#606060' }}>{item.author}</div>
+                                            <div style={{ marginTop: '4px', fontSize: '12px', color: '#606060' }}>推荐视频</div>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-
-                    {/* 评论 */}
-                    <div style={{ textAlign: 'center', color: 'white' }} onClick={() => setRiseComment(true)}>
-                        <MessageFilled style={{ fontSize: '35px', cursor: 'pointer' }} />
-                        <div style={{ fontSize: '12px', marginTop: '5px' }}>8562</div>
-                    </div>
-
-                    <CommentField 
-                        visible={riseComment} 
-                        onClose={() => setRiseComment(false)} 
-                    />
-
-                    {/* 分享 */}
-                    <div style={{ textAlign: 'center', color: 'white' }}>
-                        <ShareAltOutlined style={{ fontSize: '35px' }} />
-                        <div style={{ fontSize: '12px', marginTop: '5px' }}>2.3w</div>
-                    </div>
-                </div>
-
-                {/* 左下角信息区 */}
-                <div style={{
-                    position: 'absolute',
-                    left: '16px',
-                    bottom: '40px',
-                    color: 'white',
-                    maxWidth: '70%',
-                    zIndex: 10,
-                }}>
-                    <div style={{
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        marginBottom: '8px'
-                    }}>
-                        @{vedio.author}
-                    </div>
-                    <div style={{
-                        fontSize: '15px',
-                        lineHeight: '1.4',
-                        marginBottom: '10px'
-                    }}>
-                        {vedio.title} #心理健康 #正能量 #缓解焦虑
-                    </div>
-                    <div style={{
-                        fontSize: '13px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        opacity: 0.8
-                    }}>
-                        <span style={{ marginRight: '10px' }}>🎵 原声 - {vedio.author}的音乐花园</span>
-                    </div>
-                </div>
+                </aside>
             </div>
+
+            <CommentField 
+                visible={riseComment} 
+                onClose={() => setRiseComment(false)} 
+            />
         </div>
     );
 }

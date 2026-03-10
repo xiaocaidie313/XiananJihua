@@ -1,71 +1,81 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { CartoonIcon, PodcastIcon, ShortVideoIcon } from "../icon";
+import { ArrowRightOutlined } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
+import { CartoonIcon, PodcastIcon, ShortVideoIcon } from '../icon'
+
 function Nav() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const pages = [
-        {
-            name: '短视频',
-            page: 'shortvideo',
-            path: '/shortvideo',
-            icon: <ShortVideoIcon />,
-        },
-        {
-            name: '条漫',
-            page: 'cartoon',
-            path: '/cartoon',
-            icon: <CartoonIcon />,
+  const navigate = useNavigate()
+  const pages = [
+    {
+      name: '短视频',
+      description: '接近 YouTube 的视频内容流和播放页',
+      path: '/shortvideo',
+      icon: <ShortVideoIcon />,
+    },
+    {
+      name: '条漫',
+      description: '更适合网页浏览的图文内容与推荐瀑布流',
+      path: '/cartoon',
+      icon: <CartoonIcon />,
+    },
+    {
+      name: '播客',
+      description: '采用专辑卡片与节目列表并排展示',
+      path: '/podcast',
+      icon: <PodcastIcon />,
+    },
+  ]
 
-        },
-        {
-            name: '播客',
-            page: 'podcast',
-            path: '/podcast',
-            icon: <PodcastIcon />,
-
-        },
-    ]
-    return (
-        <>
+  return (
+    <div className="grid-auto-cards">
+      {pages.map((item) => (
+        <button
+          key={item.path}
+          className="section-card hover-rise"
+          onClick={() => navigate(item.path)}
+          style={{
+            padding: '22px',
+            textAlign: 'left',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '16px',
+          }}
+          type="button"
+        >
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '18px',
+              background: '#f5f3ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {item.icon}
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{item.name}</div>
+            <div style={{ fontSize: '14px', lineHeight: 1.6, color: '#64748b' }}>{item.description}</div>
             <div
-                className="lightpurple"
-                style={{
-                    width: '100%',
-                    height: '80px',
-                    display: 'flex',
-                    justifyContent: 'space-around',
-                    border: '1px solid #e5e5e5',
-
-                }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                color: '#5b4bdb',
+                fontSize: '13px',
+                fontWeight: 600,
+              }}
             >
-                {pages.map(item => {
-                    return (
-                        <div key={item.path} style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '2px',
-                            cursor: 'pointer',
-                        }}
-                            onClick={() => {
-                                if (item.path === '/podcast' || item.path === '/cartoon' || item.path === '/shortvideo') {
-                                    navigate(item.path, { state: { backgroundLocation: location } });
-                                    console.log('我是nav点击时候的',location)
-                                    return;
-                                }
-                                navigate(item.path);
-                            }}
-                        >
-                            {item.icon && item.icon}
-                            <span>{item.name}</span>
-                        </div>
-                    )
-                })}
-
+              进入频道
+              <ArrowRightOutlined />
             </div>
-        </>
-    )
+          </div>
+        </button>
+      ))}
+    </div>
+  )
 }
 
-export default Nav;
+export default Nav

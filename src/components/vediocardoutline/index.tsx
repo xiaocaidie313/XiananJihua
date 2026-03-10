@@ -3,81 +3,105 @@ import { PlayCircleOutlined } from '@ant-design/icons';
 import type { Vedio } from '@/features/vedios/vediosSlice';
 
 function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
-    const { id, title, author, cover } = vedio;
-    const navigate = useNavigate();
-    const location = useLocation();
-    return (
-        <div
-            onClick={() => navigate(`/shortvideo/details/${id}`, {
-                // replace: true,
-                state: {
-                    backgroundLocation: location
-                }
-            })}
-            style={{
-                width: '100%',
-                height: '280px',
-                display: 'flex',
-                flexDirection: 'column',
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
-                cursor: 'pointer',
-                position: 'relative',
-                transition: 'transform 0.2s',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-        >
-            {/* 封面图区域 */}
-            <div style={{ position: 'relative', width: '100%', height: '220px' }}>
-                <img src={cover} alt={title} style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                }} />
-                {/* 播放按钮叠加 */}
-                <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    fontSize: '40px',
-                    color: 'white',
-                    opacity: 0.8,
-                }}>
-                    <PlayCircleOutlined />
-                </div>
-            </div>
+  const { id, title, author, cover } = vedio;
+  const navigate = useNavigate();
+  const location = useLocation();
 
-            {/* 信息区域 */}
-            <div style={{
-                padding: '8px 10px',
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-            }}>
-                <div style={{
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                }}>
-                    {title}
-                </div>
-                <div style={{
-                    fontSize: '12px',
-                    color: '#999',
-                }}>
-                    {author}
-                </div>
-            </div>
+  return (
+    <article
+      className="hover-rise"
+      onClick={() => navigate(`/shortvideo/details/${id}`, { state: { from: location.pathname } })}
+      style={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        cursor: 'pointer',
+        position: 'relative',
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '16 / 9',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          background: '#000',
+        }}
+      >
+        <img
+          src={cover}
+          alt={title}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 'auto 14px 14px auto',
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(15, 23, 42, 0.58)',
+            color: 'white',
+            fontSize: '24px',
+          }}
+        >
+          <PlayCircleOutlined />
         </div>
-    );
+      </div>
+
+      <div
+        style={{
+          padding: '12px 2px 0',
+          display: 'flex',
+          gap: '12px',
+        }}
+      >
+        <div
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: '#f2f2f2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#0f0f0f',
+          }}
+        >
+          {author.slice(0, 1)}
+        </div>
+        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div
+            style={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#0f0f0f',
+              lineHeight: 1.45,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {title}
+          </div>
+          <div style={{ fontSize: '14px', color: '#606060' }}>{author}</div>
+          <div style={{ fontSize: '13px', color: '#606060' }}>12万次观看 · 推荐内容</div>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export default VedioCardOutLine;

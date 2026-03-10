@@ -21,119 +21,94 @@ function Me() {
   ];
 
   return (
-    <div
-      style={{
-        width: "100%",
-        minHeight: "calc(100vh - 120px)",
-        display: "flex",
-        flexDirection: "column",
-        padding: "20px",
-        gap: "20px",
-        backgroundColor: "#F5F5F5",
-      }}
-    >
-      {/* 用户信息卡片 */}
-      <div
-        className="lightpurple"
-        style={{
-          width: "100%",
-          padding: "30px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderRadius: "20px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <Avatar
-            size={70}
-            icon={<UserOutlined />}
-            style={{
-              backgroundColor: "#891DB4",
-              border: "3px solid white",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            }}
-          />
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <span style={{ fontSize: "20px", fontWeight: "600", color: "#333" }}>
-              姓名
-            </span>
-            <span style={{ fontSize: "14px", color: "#666" }}>
-              点击查看个人资料
-            </span>
-          </div>
-        </div>
-        <RightOutlined
-          style={{
-            fontSize: "18px",
-            color: "#891DB4",
-          }}
-        />
-      </div>
+    <div className="page-shell">
+      <section className="page-hero">
+        <span className="soft-tag">个人中心</span>
+        <h1 className="page-title" style={{ marginTop: "16px" }}>
+          更像网页后台的个人空间
+        </h1>
+        <p className="page-subtitle">不改原有功能入口，只把展示方式换成更适合 PC 浏览的卡片布局。</p>
+      </section>
 
-      {/* 菜单列表 */}
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-        }}
-      >
-        {menuItems.map((item, index) => (
+      <div className="page-content-grid">
+        <section className="surface-card" style={{ padding: "28px" }}>
           <div
-            key={index}
-            onClick={item.onClick}
+            className="lightpurple"
             style={{
               width: "100%",
-              padding: "20px",
+              padding: "30px 24px",
               display: "flex",
-              flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              backgroundColor: "white",
-              borderRadius: "16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+              borderRadius: "24px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-              <div
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <Avatar
+                size={76}
+                icon={<UserOutlined />}
                 style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "10px",
-                  backgroundColor: "#EDD3ED",
+                  backgroundColor: "#891DB4",
+                  border: "4px solid white",
+                  boxShadow: "0 8px 24px rgba(137, 29, 180, 0.18)",
+                }}
+              />
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span style={{ fontSize: "24px", fontWeight: "700", color: "#1f2937" }}>姓名</span>
+                <span style={{ fontSize: "14px", color: "#5b6475" }}>查看个人资料与最近活动记录</span>
+              </div>
+            </div>
+            <RightOutlined style={{ fontSize: "18px", color: "#891DB4" }} />
+          </div>
+
+          <div style={{ marginTop: "22px", display: "flex", flexDirection: "column", gap: "14px" }}>
+            {menuItems.map((item, index) => (
+              <div
+                key={index}
+                onClick={item.onClick}
+                className="section-card hover-rise"
+                style={{
+                  width: "100%",
+                  padding: "22px",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  color: "#891DB4",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
                 }}
               >
-                {item.icon}
+                <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                  <div
+                    style={{
+                      width: "46px",
+                      height: "46px",
+                      borderRadius: "14px",
+                      backgroundColor: "#f3f0ff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#891DB4",
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <span style={{ fontSize: "16px", fontWeight: "600", color: "#1f2937" }}>{item.title}</span>
+                </div>
+                <RightOutlined style={{ fontSize: "16px", color: "#94a3b8" }} />
               </div>
-              <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>
-                {item.title}
-              </span>
-            </div>
-            <RightOutlined
-              style={{
-                fontSize: "16px",
-                color: "#999",
-              }}
-            />
+            ))}
           </div>
-        ))}
+        </section>
+
+        <aside className="page-side-column">
+          <div className="surface-card" style={{ padding: "22px" }}>
+            <div className="section-title" style={{ fontSize: "18px", marginBottom: "16px" }}>账号概览</div>
+            <div className="info-stack">
+              <div className="info-row"><strong>身份</strong><span>学生用户</span></div>
+              <div className="info-row"><strong>最近访问</strong><span>资讯 / 短视频 / 播客</span></div>
+              <div className="info-row"><strong>状态</strong><span>已登录</span></div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

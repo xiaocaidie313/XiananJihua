@@ -1,16 +1,3 @@
-.shortvideo-container {
-    transform: translateX(0);
-    transition: transform 0.3s ease-in-out;
-}
-
-/* 进入动画：从右侧滑入 */
-.shortvideo-container.is-entering {
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
-
-}
-
-/* 返回动画：滑向右侧 */
-.shortvideo-container.is-back {
-    transform: translateX(100%);
+.shortvideo-page {
+  gap: 20px;
 }

@@ -1,13 +1,37 @@
-.cartoon-page{
-    transform: translateX(0);
-    transition: transform 0.3s ease-in-out;
+.cartoon-page {
+  gap: 24px;
 }
 
-/* 返回动效 */
-.cartoon-page.click-back {
-    transform: translateX(100%);
+.cartoon-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
 }
-.cartoon-page.is-entering {
-    transform: translateX(100%);
-    transition: transform 0.2s ease-in-out;
+
+.cartoon-carousel {
+  width: 100%;
+  height: 420px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.cartoon-carousel__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.cartoon-carousel__item {
+  width: 100%;
+  height: 420px;
+}
+
+.cartoon-carousel__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

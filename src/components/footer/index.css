@@ -1,16 +1,83 @@
-.container {
-    width:100%;
-    padding:16px;
-    height:80px;
-    bottom:0;
-    position:fixed; 
-    z-index:50;
-    /* background-color:white; 移除，让 footer-purple 类控制背景色 */
-    border-top:1px solid #e5e5e5;
-    box-shadow:0 0 10px 0 rgba(0,0,0,0.1);
+.site-footer {
+  margin-top: 24px;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(12px);
 }
 
-/* 如果同时有 container 和 footer-purple 类，footer-purple 的背景色会生效 */
-/* .container.footer-purple {
-    background-color: #944A94;
-} */
+.site-footer__inner {
+  width: min(1440px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 28px 0 36px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.site-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.site-footer__logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6d52ff 0%, #9f6bff 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.site-footer__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.site-footer__desc {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-footer__links button {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.site-footer__links button:hover {
+  color: #5b4bdb;
+}
+
+.site-footer__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-self: end;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.site-footer__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

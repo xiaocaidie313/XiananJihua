@@ -1,4 +1,3 @@
-import { Button, Avatar } from "antd";
 import { 
     PhoneOutlined, 
     EnvironmentOutlined, 
@@ -6,7 +5,6 @@ import {
     AlertOutlined,
     RightOutlined
 } from "@ant-design/icons";
-import Header from "@/components/header";
 
 function Warn() {
   function call12355(){
@@ -19,203 +17,93 @@ function Warn() {
     window.location.href = 'tel:110';
   }
   return (
-    <>
-      {/* <Header /> */}
-      <div
-        style={{
-          width: "100%",
-          height: "100vh", // 占满整个视口
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "space-evenly",
-          padding: "20px 24px 100px 24px", // 底部留 100px 避开 Footer
-          backgroundColor: "#fcfaff",
-          overflow: "hidden",
-        }}
-      >
-        {/* 顶部提示 */}
-        <div
-          style={{
-            width: "100%",
-            textAlign: "center",
-          }}
-        >
-          <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#333", marginBottom: "6px" }}>
-            遇到紧急情况？
-          </h2>
-          <p style={{ fontSize: "13px", color: "#999" }}>
-            小安时刻守护你的安全，请点击下方按钮求助
-          </p>
-        </div>
+    <div className="page-shell">
+      <section className="page-hero">
+        <span className="soft-tag">安全求助</span>
+        <h1 className="page-title" style={{ marginTop: "16px" }}>网页化紧急帮助中心</h1>
+        <p className="page-subtitle">将原来的移动端求助页改成桌面端控制台式布局，保留原有求助入口和呼叫逻辑。</p>
+      </section>
 
-        {/* 核心报警按钮 */}
-        <div 
-          style={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '240px',
-            height: '240px',
-          }}
-        >
-          {/* 外圈装饰扩散效果 (模拟) */}
-          <div style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(92, 69, 153, 0.05)',
-            zIndex: 0
-          }}></div>
-          <div style={{
-            position: 'absolute',
-            width: '210px',
-            height: '210px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(92, 69, 153, 0.1)',
-            zIndex: 1
-          }}></div>
-
-          <div 
-            onClick={()=>call110()}
-            style={{
-              width: "180px",
-              height: "180px",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #944A94 0%, #5C4599 100%)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              boxShadow: "0 10px 30px rgba(92, 69, 153, 0.4)",
-              cursor: "pointer",
-              zIndex: 2,
-              transition: 'transform 0.2s',
-            }}
-            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <AlertOutlined style={{ fontSize: "36px", marginBottom: "10px" }} />
-            <span style={{ fontSize: "22px", fontWeight: "bold", letterSpacing: '2px' }}>一键报警</span>
-          </div>
-        </div>
-
-        {/* 辅助功能卡片组 */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px", // 减少gap
-            flexShrink: 0, // 防止被压缩
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "14px 16px", // 减少padding
-              backgroundColor: "white",
-              borderRadius: "16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ 
-              width: '40px', 
-              height: '40px', 
-              borderRadius: '12px', 
-              backgroundColor: '#f0eeff', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              marginRight: '12px'
-            }}>
-              <EnvironmentOutlined style={{ fontSize: '20px', color: '#5C4599' }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '15px', fontWeight: '500', color: '#333' }}>位置共享</div>
-              <div style={{ fontSize: '11px', color: '#999' }}>实时同步位置给紧急联系人</div>
-            </div>
-            <RightOutlined style={{ color: '#ccc', fontSize: '12px' }} />
+      <div className="page-content-grid">
+        <section className="surface-card" style={{ padding: "32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "32px" }}>
+          <div style={{ textAlign: "center" }}>
+            <h2 style={{ fontSize: "28px", fontWeight: 700, color: "#1f2937" }}>遇到紧急情况？</h2>
+            <p style={{ marginTop: "10px", fontSize: "15px", color: "#64748b" }}>小安时刻守护你的安全，请优先使用下方快捷求助入口。</p>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "14px 16px",
-              backgroundColor: "white",
-              borderRadius: "16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ 
-              width: '40px', 
-              height: '40px', 
-              borderRadius: '12px', 
-              backgroundColor: '#fff0f0', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              marginRight: '12px'
-            }}>
-              <PhoneOutlined style={{ fontSize: '20px', color: '#ff4d4f' }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '15px', fontWeight: '500', color: '#333' }}>拨打家长电话</div>
-              <div style={{ fontSize: '11px', color: '#999' }}>一键呼叫默认紧急联系人</div>
-            </div>
-            <RightOutlined style={{ color: '#ccc', fontSize: '12px' }} />
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '280px', height: '280px' }}>
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: 'rgba(92, 69, 153, 0.06)' }}></div>
+            <div style={{ position: 'absolute', inset: '28px', borderRadius: '50%', backgroundColor: 'rgba(92, 69, 153, 0.12)' }}></div>
+            <button
+              onClick={() => call110()}
+              style={{
+                width: "190px",
+                height: "190px",
+                borderRadius: "50%",
+                border: "none",
+                background: "linear-gradient(135deg, #ef4444 0%, #7c3aed 100%)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                boxShadow: "0 20px 50px rgba(124, 58, 237, 0.28)",
+                cursor: "pointer",
+                zIndex: 2,
+              }}
+              type="button"
+            >
+              <AlertOutlined style={{ fontSize: "40px", marginBottom: "12px" }} />
+              <span style={{ fontSize: "24px", fontWeight: "bold", letterSpacing: '2px' }}>一键报警</span>
+            </button>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "14px 16px",
-              backgroundColor: "white",
-              borderRadius: "16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ 
-              width: '40px', 
-              height: '40px', 
-              borderRadius: '12px', 
-              backgroundColor: '#f0faff', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              marginRight: '12px'
-            }}>
-              <CustomerServiceOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-            </div>
-            <div 
-            
-            onClick={()=>call12355()}
-            style={{ flex: 1 }}>
-              <div style={{ fontSize: '15px', fontWeight: '500', color: '#333' }}>12355青少年服务</div>
-              <div style={{ fontSize: '11px', color: '#999' }}>专业青少年心理与维权咨询</div>
-            </div>
-            <RightOutlined style={{ color: '#ccc', fontSize: '12px' }} />
-          </div>
-        </div>
-
-        {/* 安全提示 */}
-        <div style={{ textAlign: 'center', padding: '0 20px', flexShrink: 0 }}>
-          <p style={{ fontSize: '11px', color: '#ccc', lineHeight: '1.5' }}>
+          <p style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.6 }}>
             提示：非紧急情况请勿随意点击报警按钮
           </p>
-        </div>
+        </section>
+
+        <aside className="page-side-column">
+          <div className="surface-card" style={{ padding: "22px" }}>
+            <div className="section-title" style={{ fontSize: "18px", marginBottom: "16px" }}>辅助求助</div>
+            <div className="info-stack">
+              <div className="section-card hover-rise" style={{ padding: "16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', backgroundColor: '#f0eeff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <EnvironmentOutlined style={{ fontSize: '20px', color: '#5C4599' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>位置共享</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>实时同步位置给紧急联系人</div>
+                </div>
+                <RightOutlined style={{ color: '#cbd5e1', fontSize: '12px' }} />
+              </div>
+
+              <div onClick={() => callParent()} className="section-card hover-rise" style={{ padding: "16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', backgroundColor: '#fff0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PhoneOutlined style={{ fontSize: '20px', color: '#ff4d4f' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>拨打家长电话</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>一键呼叫默认紧急联系人</div>
+                </div>
+                <RightOutlined style={{ color: '#cbd5e1', fontSize: '12px' }} />
+              </div>
+
+              <div onClick={() => call12355()} className="section-card hover-rise" style={{ padding: "16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', backgroundColor: '#f0faff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CustomerServiceOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>12355 青少年服务</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>专业青少年心理与维权咨询</div>
+                </div>
+                <RightOutlined style={{ color: '#cbd5e1', fontSize: '12px' }} />
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
-    </>
+    </div>
   );
 }
 

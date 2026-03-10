@@ -93,3 +93,26 @@
     outline: none;
     font-size: 14px;
 }
+
+.yt-watch-action {
+    height: 36px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 999px;
+    background: #f2f2f2;
+    color: #0f0f0f;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.yt-watch-action:hover {
+    background: #e7e7e7;
+}
+
+.yt-watch-action .anticon {
+    font-size: 18px;
+}

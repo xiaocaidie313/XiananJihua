@@ -12,25 +12,24 @@ function Dialog(props: DialogProps) {
       style={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: isOwn ? "flex-end" : "flex-start",
         width: "100%",
-        padding: "0 16px",
+        padding: "0 24px",
       }}
     >
         <div style={{
             display:'flex',
             alignItems:'center',
-            justifyContent:'center',
+            justifyContent: isOwn ? 'flex-end' : 'flex-start',
             width:'100%',
-            padding:'0 16px',
-        }}>  
-                  {/* 时间 */}
+            padding:'0 8px',
+        }}>
       {time && (
         <span
           style={{
             fontSize: "12px",
-            color: "#999",
-            marginBottom: "4px",
+            color: "#94a3b8",
+            marginBottom: "6px",
           }}
         >
           {time}
@@ -45,23 +44,25 @@ function Dialog(props: DialogProps) {
           marginBottom: "12px",
           justifyContent: isOwn ? "flex-end" : "flex-start",
           width: "100%",
-          padding: "0 16px",
+          padding: "0 8px",
         }}
       >
         {/* 消息气泡 */}
         <div
           style={{
-            maxWidth: "70%",
-            padding: "10px 14px",
-            borderRadius: "16px",
+            maxWidth: "72%",
+            padding: "14px 16px",
+            borderRadius: "18px",
             wordWrap: "break-word",
-            backgroundColor: isOwn ? "#5C4599" : "#F0EDF0",
-            color: isOwn ? "white" : "#333",
-            borderBottomRightRadius: isOwn ? "4px" : "16px",
-            borderBottomLeftRadius: isOwn ? "16px" : "4px",
+            backgroundColor: isOwn ? "#5b4bdb" : "#f8fafc",
+            color: isOwn ? "white" : "#1f2937",
+            border: isOwn ? "none" : "1px solid #e5e7eb",
+            boxShadow: isOwn ? "0 12px 24px rgba(91, 75, 219, 0.22)" : "none",
+            borderBottomRightRadius: isOwn ? "6px" : "18px",
+            borderBottomLeftRadius: isOwn ? "18px" : "6px",
           }}
         >
-          <span style={{ fontSize: "14px", lineHeight: "1.5" }}>{message}</span>
+          <span style={{ fontSize: "14px", lineHeight: "1.7" }}>{message}</span>
         </div>
       </div>
     </div>

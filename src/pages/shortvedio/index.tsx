@@ -1,96 +1,39 @@
-import Header from '../../components/header/index';
 import VedioCardOutline from '../../components/vediocardoutline/index';
-import Footer from '../../components/footer/index';
 import { useAppSelector } from '@/store/hooks';
 import { getAllVedios } from '@/features/vedios/vediosSlice';
-import { useLocation, useNavigate, type Location} from 'react-router-dom';
-import { useState, useEffect , useRef} from 'react';
 import './index.css';
+
 function ShortVideo() {
-    const vedios = useAppSelector(getAllVedios);
-    const navigate = useNavigate()
-    const [isEntering, setIsEntering] = useState(true)
-    const [isBack, setIsBack] = useState(false)
-    const location = useLocation()
-    const isFromDetails = (location.state as { fromDetails?: boolean })?.fromDetails
-    const backgroundLocation = useRef<Location | null>((location.state as { backgroundLocation?: Location })?.backgroundLocation)
-    const playEnterAnimation = () =>{
-       setTimeout(() => {
-            setIsEntering(false);
-        }, 10);
+  const vedios = useAppSelector(getAllVedios);
+  const filters = ['全部', '最新上传', '学习成长', '安全守护', '正能量', '心理调节'];
 
-    }
-    useEffect(() => {   
-        if(!isFromDetails){
-            playEnterAnimation()
-        }
-    }, [isFromDetails]);
+  return (
+    <div className="page-shell shortvideo-page">
+      <div className="yt-filter-row">
+        {filters.map((item, index) => (
+          <button key={item} className={`yt-filter-chip${index === 0 ? ' is-active' : ''}`} type="button">
+            {item}
+          </button>
+        ))}
+      </div>
 
-    const handleBack = () => {
-        setIsBack(true)
-        setTimeout(() => {
-            navigate('/', { replace: true })
-            setIsBack(false)
-        }, 300)
-    }
-
-    return (
-        <div 
-            className={`shortvideo-container 
-            ${isEntering ? 'is-entering' : ''} 
-            ${isBack ? 'is-back' : ''}`}
-            style={{
-                position:'fixed',
-                top:0,
-                left:0,
-                right:0,
-                bottom:0,
-                zIndex:5000,
-                backgroundColor: '#f8f8f8',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-            }}
-        >
-            <Header handleBack={handleBack} />
-            
-            <div style={{
-                flex: 1,
-                width: '100%',
-                overflowY: 'auto',
-                padding: '70px 12px 100px 12px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-            }}>
-                {/* 瀑布流布局 */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '12px',
-                    width: '100%',
-                }}>
-                    {vedios.map((vedio) => (
-                        <VedioCardOutline 
-                            key={vedio.id} 
-                            vedio={vedio}
-                        />
-                    ))}
-                </div>
-            </div>
-            
-            {/* Footer 固定在底部 */}
-            {/* <div style={{ 
-                position: 'absolute', 
-                bottom: 0, 
-                left: 0, 
-                right: 0, 
-                zIndex: 10
-            }}>
-                <Footer />
-            </div> */}
+      <section className="surface-card" style={{ padding: '20px' }}>
+        <div className="section-head">
+          <div>
+            <div className="section-title">推荐内容</div>
+            <div className="section-meta">采用 YouTube 风格的视频卡片流与筛选标签</div>
+          </div>
+          <span className="soft-tag">{vedios.length} videos</span>
         </div>
-    );
+
+        <div className="yt-video-grid">
+          {vedios.map((vedio) => (
+            <VedioCardOutline key={vedio.id} vedio={vedio} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
 }
 
 export default ShortVideo;
