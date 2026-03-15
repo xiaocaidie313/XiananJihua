@@ -133,12 +133,12 @@ function Podcast() {
               <OrderedListOutlined />
             </button>
           </div>
-
+{/* 
           <div className="podcast-social">
             <div><LikeOutlined /> 177</div>
             <div><MessageOutlined /> 31</div>
             <div><MoreOutlined /> 更多</div>
-          </div>
+          </div> */}
         </section>
 
         <section className="surface-card" style={{ padding: '24px' }}>

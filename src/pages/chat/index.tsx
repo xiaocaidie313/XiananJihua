@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getOrCreateSession, getQaInfo, streamQaStream, getConversationList } from '@/api/qa'
-import type { SessionType } from '@/constants/qa'
+import type { SessionInfo, SessionType } from '@/constants/qa'
 import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
 import Dialog from './components/dialog'
 import BottomInput from './components/bottomInput'
+import History from './components/history'
 import './index.css'
 
 export interface Message {
@@ -19,7 +20,7 @@ function Chat() {
   const [sessionId, setSessionId] = useState(0)
   const [loadingMessages, setLoadingMessages] = useState(true)
   const [sending, setSending] = useState(false)
-  const [sessionCount, setSessionCount] = useState(0)
+  const [sessions, setSessions] = useState<SessionInfo[]>([])
   const [feedback, setFeedback] = useState('')
   const currentUserId = getCurrentUserId()
   const isLoggedIn = Boolean(currentUserId)
@@ -31,11 +32,10 @@ function Chat() {
   }
 
   const ensureSessionId = useCallback(async (fallbackFeedback: string) => {
-    if (sessionId) {
+    if (sessionId && sessionId > 0) {
       return sessionId
     }
     try {
-      // 获取或创建会话  获得 session_id 
       const sessionResponse = await getOrCreateSession()
       const sessionData = unwrapResponse<SessionType | null>(sessionResponse)
 
@@ -43,12 +43,16 @@ function Chat() {
         throw new Error(fallbackFeedback)
       }
 
-      setSessionId(sessionData.session.session_id)
-      return sessionData.session.session_id
+      const realSession = sessionData.session
+      const placeholderId = sessionId
+      setSessionId(realSession.session_id)
+      setSessions((prev) =>
+        prev.map((s) => (s.session_id === placeholderId ? realSession : s)),
+      )
+      return realSession.session_id
     } catch {
       throw new Error(fallbackFeedback)
     }
-
   }, [sessionId])
 
   useEffect(() => {
@@ -104,7 +108,7 @@ function Chat() {
           return
         }
 
-        setSessionCount(sessions.length)
+        setSessions(sessions)
         const rawMessages = messageData?.messages ?? []
         setMessages(
           rawMessages.map((item, index) => ({
@@ -143,6 +147,80 @@ function Chat() {
     }
   }, [loadingMessages, messages])
 
+  const loadSessionMessages = useCallback(async (targetSessionId: number) => {
+    if (!currentUserId) return
+    try {
+      setLoadingMessages(true)
+      const messageResponse = await getQaInfo({
+        session_id: targetSessionId,
+        page_size: 50,
+        cursor: '',
+        user_id: currentUserId,
+      })
+      const messageData = unwrapResponse(messageResponse)
+      const rawMessages = messageData?.messages ?? []
+      setMessages(
+        rawMessages.map((item, index) => ({
+          id: index + 1,
+          message: item.content,
+          role: (index % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
+          time: formatTime(item.created_at),
+        })),
+      )
+      setSessionId(targetSessionId)
+      setFeedback('')
+    } catch (error) {
+      setFeedback(getErrorMessage(error, '加载会话失败，请稍后再试'))
+      setMessages([])
+    } finally {
+      setLoadingMessages(false)
+    }
+  }, [currentUserId])
+
+  const refreshSessions = useCallback(async () => {
+    if (!currentUserId) return
+    try {
+      const res = await getConversationList({ page_size: 20, cursor: '', user_id: currentUserId })
+      const data = unwrapResponse(res)
+      setSessions(data?.sessions ?? [])
+    } catch {
+      // 静默失败
+    }
+  }, [currentUserId])
+
+  const handleNewChat = useCallback(async () => {
+    if (!isLoggedIn) return
+    const placeholderId = -Date.now()
+    const placeholder: SessionInfo = {
+      session_id: placeholderId,
+      title: '新对话',
+      user_id: currentUserId,
+      message_count: 0,
+      has_message: 0,
+      session_status: 0,
+      is_pinned: 0,
+      qpinned_at: 0,
+      last_message_at: 0,
+      relation_status: 0,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    }
+    setSessionId(placeholderId)
+    setSessions((prev) => [placeholder, ...prev])
+    setMessages([])
+    setFeedback('')
+  }, [isLoggedIn, currentUserId])
+
+  const handleSelectSession = useCallback((targetSessionId: number) => {
+    if (targetSessionId === sessionId) return
+    if (targetSessionId < 0) {
+      setMessages([])
+      setSessionId(targetSessionId)
+      return
+    }
+    void loadSessionMessages(targetSessionId)
+  }, [sessionId, loadSessionMessages])
+
   const handleSend = async (value: string) => {
     if (!value.trim() || !isLoggedIn) {
       return
@@ -158,6 +236,7 @@ function Chat() {
     }
 
     const assistantMessageId = now + 1
+    // 先用两条信息 占位  ， 有道理
     setMessages((prev) => [
       ...prev,
       userMessage,
@@ -190,6 +269,7 @@ function Chat() {
           )
           if (finished) {
             setFeedback('')
+            void refreshSessions()
           }
         },
       )
@@ -209,8 +289,18 @@ function Chat() {
 
   return (
     <div className="chat-page">
-      <section className="chat-shell">
-        <div className="chat-shell__topbar">
+      <div className="chat-layout">
+        {/* {isLoggedIn && (
+          <History
+            sessions={sessions}
+            currentSessionId={sessionId}
+            onNewChat={handleNewChat}
+            onSelectSession={handleSelectSession}
+            disabled={loadingMessages}
+          />
+        )} */}
+        <section className="chat-shell">
+          <div className="chat-shell__topbar">
           <div>
             <div className="chat-shell__title">小安对话</div>
             <div className="chat-shell__subtitle">
@@ -219,11 +309,11 @@ function Chat() {
                 : '请先登录，登录后即可恢复你的历史会话并继续聊天。'}
             </div>
           </div>
-          <div className="chat-shell__meta">
+          {/* <div className="chat-shell__meta">
             <span className="soft-tag">{isLoggedIn ? '已登录' : '未登录'}</span>
             <span className="soft-tag">{messages.length} 条消息</span>
-            <span className="soft-tag">{sessionCount} 个会话</span>
-          </div>
+            <span className="soft-tag">{sessions.length} 个会话</span>
+          </div> */}
         </div>
 
         {feedback && <div className="chat-shell__feedback">{feedback}</div>}
@@ -259,7 +349,8 @@ function Chat() {
           onSend={(value) => void handleSend(value)}
           setInputValue={setInputValue}
         />
-      </section>
+        </section>
+      </div>
     </div>
   )
 }

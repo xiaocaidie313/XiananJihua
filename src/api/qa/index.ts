@@ -50,9 +50,9 @@ export const streamQaStream = async (
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
-      console.log('value', value)
+      // console.log('value', value)
       buffer += decoder.decode(value, { stream: true })
-      console.log('buffer', buffer)
+      // console.log('buffer', buffer)
 
       const lines = buffer.split('\n')
       buffer = lines.pop() ?? ''
@@ -87,7 +87,7 @@ export const streamQa = (params: StreamQaParams) => {
   return instance.post<CommonResponse<Record<string, unknown>>>('/api/qa/sse/ask', params, { header: authHeader() })
 }
 
-/** 获取问答信息 */
+/** 获取问答信息列表 */
 export const getQaInfo = (params: GetQaInfoParams) => {
   return instance.get<CommonResponse<GetQaInfoSuccess>>('/api/qa/get-messages', params, { header: authHeader() })
 }
