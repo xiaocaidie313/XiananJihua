@@ -1,14 +1,18 @@
 .shortvideo-page {
   width: 100%;
+  max-width: 100%;
   height: calc(100dvh - 64px - 24px);
   min-height: 680px;
   margin-top: -20px;
   margin-bottom: -40px;
+  overflow-x: hidden;
 }
 
 .shortvideo-feed {
   width: 100%;
+  max-width: 100%;
   height: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
@@ -20,6 +24,7 @@
 
 .shortvideo-slide {
   width: 100%;
+  max-width: 100%;
   height: calc(100dvh - 64px - 24px);
   min-height: 680px;
   display: flex;
@@ -28,11 +33,13 @@
   scroll-snap-align: start;
   scroll-snap-stop: always;
   padding: 0;
+  overflow: hidden;
 }
 
 .shortvideo-stage {
   position: relative;
   width: 100%;
+  max-width: 100%;
   height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 0;
@@ -51,21 +58,26 @@
   grid-template-columns: minmax(0, 1fr) min(420px, 38vw);
 }
 
-.shortvideo-stage-main {
+.shortvideo-video-cell {
   position: relative;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
   height: 100%;
-  transition: transform 0.28s ease;
+  overflow: hidden;
 }
 
-.shortvideo-stage.has-comment-open .shortvideo-stage-main {
-  transform: translateX(-22px) scale(0.94);
-  transform-origin: center center;
+.shortvideo-player-box {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000000;
 }
 
 .shortvideo-player {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: contain;
   background: #000000;
 }
@@ -84,7 +96,8 @@
 .shortvideo-overlay--bottom {
   bottom: 0;
   align-items: flex-end;
-  padding: 24px 28px 56px;
+  padding: 24px 56px 56px 28px;
+  box-sizing: border-box;
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0) 100%);
 }
 

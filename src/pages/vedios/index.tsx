@@ -1,10 +1,9 @@
-import { useAppSelector } from '@/store/hooks'
-import { getAllVedios } from '@/features/vedios/vediosSlice'
+import { useVideos } from '@/hooks/useVideos'
 import VedioCardOutline from '@/components/vediocardoutline'
 import './index.css'
 
 function VediosList() {
-  const vedios = useAppSelector(getAllVedios)
+  const { vedios } = useVideos()
 
   if (!vedios.length) {
     return (
@@ -25,8 +24,8 @@ function VediosList() {
           </div> */}
         </div>
         <div className="vedios-grid">
-          {vedios.map((vedio) => (
-            <VedioCardOutline key={vedio.id} vedio={vedio} />
+          {vedios.map((vedio, index) => (
+            <VedioCardOutline key={vedio.video_id ?? index} vedio={vedio} />
           ))}
         </div>
       </section>

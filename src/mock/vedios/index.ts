@@ -1,7 +1,7 @@
 export const vedios = [
     {
         id:1,
-        url:'http://xiaoanjihua.cc/vedio/01.mp4',
+        url:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/vedios/01.mp4',
         cover:'http://xiaoanjihua.cc/images/carousel/01.jpg',
         title:'如何保持心理健康',
         author:'小安',
@@ -16,7 +16,7 @@ export const vedios = [
     },
     {
         id:2,
-        url:'http://xiaoanjihua.cc/vedio/02.mp4',
+        url:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/vedios/01.mp4',
         cover:'http://xiaoanjihua.cc/images/carousel/02.jpg',
         title:'如何保持心理健康',
         author:'小安',
@@ -31,7 +31,7 @@ export const vedios = [
     },
     {
         id:3,
-        url:'http://xiaoanjihua.cc/vedio/03.mp4',
+        url:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/vedios/01.mp4',
         cover:'http://xiaoanjihua.cc/images/carousel/03.jpg',
         title:'如何保持心理健康',
         author:'小安',
@@ -46,7 +46,7 @@ export const vedios = [
     },
     {
         id:4,
-        url:'http://xiaoanjihua.cc/vedio/04.mp4',
+        url:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/vedios/01.mp4',
         cover:'http://xiaoanjihua.cc/images/carousel/01.jpg',
         title:'如何保持心理健康',
         author:'小安',
@@ -61,7 +61,7 @@ export const vedios = [
     },
     {
         id:5,
-        url:'http://xiaoanjihua.cc/vedio/04.mp4',
+        url:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/vedios/01.mp4',
         cover:'http://xiaoanjihua.cc/images/carousel/01.jpg',
         title:'如何保持心理健康',
         author:'小安',
@@ -76,7 +76,7 @@ export const vedios = [
     },
     {
         id:6,
-        url:'http://xiaoanjihua.cc/vedio/02.mp4',
+        url:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/vedios/01.mp4',
         cover:'http://xiaoanjihua.cc/images/carousel/02.jpg',
         title:'如何保持心理健康',
         author:'小安',

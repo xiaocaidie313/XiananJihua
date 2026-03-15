@@ -7,8 +7,7 @@ import {
 } from "@ant-design/icons";
 import image from '@/assets/images/carousel/01.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAppSelector } from "@/store/hooks";
-import { getAllVedios, getVedioById } from "@/features/vedios/vediosSlice";
+import { useVideo, useVideos } from '@/hooks/useVideos';
 import { useState } from 'react';
 import './index.css';
 
@@ -23,10 +22,11 @@ const commentItems = [
 function Vedios() {
     const navigate = useNavigate();
     const { id } = useParams();
-    const vedio = useAppSelector(state => getVedioById(state, Number(id)));
-    const allVedios = useAppSelector(getAllVedios);
+    const videoId = id ? Number(id) : null;
+    const { vedio } = useVideo(videoId);
+    const { vedios: allVedios } = useVideos();
     const [like, setLike] = useState(false);
-    const recommendVedios = allVedios.filter(item => item.id !== Number(id)).slice(0, 5);
+    const recommendVedios = allVedios.filter(item => item.video_id !== videoId).slice(0, 5);
 
     if (!vedio) return <div style={{ color: '#334155', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
 
@@ -36,6 +36,9 @@ function Vedios() {
                 <section style={{ minWidth: 0 }}>
                     <div style={{
                         width: '100%',
+                        maxWidth: '900px',
+                        aspectRatio: '16 / 9',
+                        margin: '0 auto',
                         borderRadius: '16px',
                         overflow: 'hidden',
                         backgroundColor: '#020617',
@@ -46,10 +49,11 @@ function Vedios() {
                             autoPlay
                             loop
                             playsInline
+                            muted={false}
                             poster={vedio.cover || image}
                             style={{
                                 width: '100%',
-                                maxHeight: '760px',
+                                height: '100%',
                                 objectFit: 'contain',
                                 backgroundColor: '#000',
                             }}
@@ -57,7 +61,7 @@ function Vedios() {
                     </div>
 
                     <div style={{ marginTop: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                        <div style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1.35, color: '#0f0f0f' }}>{vedio.title}</div>
+                        <div style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1.35, color: '#0f0f0f' }}>{vedio.name}</div>
 
                         <div style={{
                             display: 'flex',
@@ -180,8 +184,8 @@ function Vedios() {
                         <div className="yt-side-list">
                             {recommendVedios.map((item) => (
                                 <button
-                                    key={item.id}
-                                    onClick={() => navigate(`/vedios/${item.id}`)}
+                                    key={item.video_id}
+                                    onClick={() => item.video_id != null && navigate(`/vedios/${item.video_id}`)}
                                     style={{
                                         width: '100%',
                                         border: 'none',
@@ -195,7 +199,7 @@ function Vedios() {
                                     <div style={{ display: 'grid', gridTemplateColumns: '168px minmax(0, 1fr)', gap: '10px' }}>
                                         <img
                                             src={item.cover}
-                                            alt={item.title}
+                                            alt={item.name ?? ''}
                                             style={{
                                                 width: '168px',
                                                 height: '94px',
@@ -204,7 +208,7 @@ function Vedios() {
                                             }}
                                         />
                                         <div style={{ minWidth: 0 }}>
-                                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f0f0f', lineHeight: 1.45 }}>{item.title}</div>
+                                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f0f0f', lineHeight: 1.45 }}>{item.name ?? ''}</div>
                                             <div style={{ marginTop: '6px', fontSize: '12px', color: '#606060' }}>{item.author}</div>
                                             <div style={{ marginTop: '4px', fontSize: '12px', color: '#606060' }}>推荐视频</div>
                                         </div>

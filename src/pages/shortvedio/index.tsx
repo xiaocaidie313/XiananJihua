@@ -1,6 +1,5 @@
 import { CloseOutlined, HeartFilled, MessageFilled, PauseCircleFilled, PlayCircleFilled, ShareAltOutlined } from '@ant-design/icons'
-import { useAppSelector } from '@/store/hooks'
-import { getAllVedios } from '@/features/vedios/vediosSlice'
+import { useVideos } from '@/hooks/useVideos'
 import { useEffect, useRef, useState } from 'react'
 import './index.css'
 
@@ -10,12 +9,16 @@ interface VideoProgressState {
 }
 
 function ShortVideo() {
-  const vedios = useAppSelector(getAllVedios)
+  const { vedios } = useVideos()
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({})
-  const [activeVideoId, setActiveVideoId] = useState<number | null>(vedios[0]?.id ?? null)
+  const [activeVideoId, setActiveVideoId] = useState<number | null>(vedios[0]?.video_id ?? null)
   const [progressMap, setProgressMap] = useState<Record<number, VideoProgressState>>({})
   const [likedMap, setLikedMap] = useState<Record<number, boolean>>({})
   const [pausedMap, setPausedMap] = useState<Record<number, boolean>>({})
+  const pausedMapRef = useRef<Record<number, boolean>>({})
+  useEffect(() => {
+    pausedMapRef.current = pausedMap
+  }, [pausedMap])
   const [commentVisible, setCommentVisible] = useState(false)
   const [shareFeedbackId, setShareFeedbackId] = useState<number | null>(null)
   const commentItems = Array.from({ length: 8 }, (_, index) => ({
@@ -42,7 +45,7 @@ function ShortVideo() {
 
           if (entry.isIntersecting && entry.intersectionRatio > 0.65) {
             setActiveVideoId(videoId)
-            const isPausedManually = pausedMap[videoId]
+            const isPausedManually = pausedMapRef.current[videoId]
 
             if (!isPausedManually) {
               void videoEl.play().catch(() => undefined)
@@ -58,14 +61,15 @@ function ShortVideo() {
     )
 
     vedios.forEach((vedio) => {
-      const videoEl = videoRefs.current[vedio.id]
-      if (videoEl) {
-        observer.observe(videoEl)
+      const vid = vedio.video_id
+      if (vid != null) {
+        const videoEl = videoRefs.current[vid]
+        if (videoEl) observer.observe(videoEl)
       }
     })
 
     return () => observer.disconnect()
-  }, [pausedMap, vedios])
+  }, [vedios])
 
   useEffect(() => {
     setCommentVisible(false)
@@ -129,57 +133,65 @@ function ShortVideo() {
   return (
     <div className="shortvideo-page">
       <div className="shortvideo-feed">
-        {vedios.map((vedio, index) => {
-          const isActive = activeVideoId === vedio.id
-          const isLiked = Boolean(likedMap[vedio.id])
-          const isPaused = Boolean(pausedMap[vedio.id])
-          const progress = progressMap[vedio.id]
-          const progressPercent = progress?.duration ? (progress.currentTime / progress.duration) * 100 : 0
+        {vedios.filter((v): v is typeof v & { video_id: number } => v.video_id != null).map((vedio, index) => {
+          const vid = vedio.video_id
+          const isActive = activeVideoId === vid
+          const isLiked = Boolean(likedMap[vid])
+          const isPaused = Boolean(pausedMap[vid])
+        //   const progress = progressMap[vedio.video_id]
+        //   const progressPercent = progress?.duration ? (progress.currentTime / progress.duration) * 100 : 0
           const isCommentOpen = commentVisible && isActive
 
           return (
-            <section className="shortvideo-slide" key={vedio.id}>
+            <section className="shortvideo-slide" key={vid}>
               <article className={`shortvideo-stage${isActive ? ' is-active' : ''}${isCommentOpen ? ' has-comment-open' : ''}`}>
-                <div className="shortvideo-stage-main">
+                <div className="shortvideo-video-cell">
+                <div className="shortvideo-player-box">
                   <video
                     ref={(element) => {
-                      videoRefs.current[vedio.id] = element
+                      videoRefs.current[vid] = element
                     }}
                     className="shortvideo-player"
-                    data-video-id={vedio.id}
+                    data-video-id={vid}
                     src={vedio.url}
                     loop
-                    muted
+                    autoPlay
+                    controls
+                    muted={false}
                     playsInline
                     preload={index === 0 ? 'auto' : 'metadata'}
                     poster={vedio.cover}
                     onLoadedMetadata={(event) => {
-                      updateProgress(vedio.id, event.currentTarget.currentTime, event.currentTarget.duration || 0)
+                      updateProgress(vid, event.currentTarget.currentTime, event.currentTarget.duration || 0)
                     }}
                     onTimeUpdate={(event) => {
-                      updateProgress(vedio.id, event.currentTarget.currentTime, event.currentTarget.duration || 0)
+                      updateProgress(vid, event.currentTarget.currentTime, event.currentTarget.duration || 0)
                     }}
-                    onClick={() => handleTogglePlayback(vedio.id)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleTogglePlayback(vid)
+                    }}
                   />
-
-                  <div className="shortvideo-overlay shortvideo-overlay--bottom">
+                </div>
+                <div className="shortvideo-overlay shortvideo-overlay--bottom">
                     <div className="shortvideo-meta">
                       <div className="shortvideo-author">@{vedio.author}</div>
-                      <div className="shortvideo-title">{vedio.title}</div>
+                      <div className="shortvideo-title">{vedio.name}</div>
                       <div className="shortvideo-subtitle">
                         第 {index + 1} 条短视频 · 整个视频完整展示
                       </div>
                     </div>
-
+                    {/* // 操作按钮 */}
                     <div className="shortvideo-actions">
                       <div className="shortvideo-author-avatar" title={vedio.author}>
                         <div className="shortvideo-author-avatar__inner">
-                          {vedio.author.slice(0, 1)}
+                          {(vedio.author ?? '').slice(0, 1)}
                         </div>
                       </div>
                       <button
                         className={`shortvideo-action${isLiked ? ' is-liked' : ''}`}
-                        onClick={() => handleToggleLike(vedio.id)}
+                        onClick={() => handleToggleLike(vid)}
                         type="button"
                       >
                         <HeartFilled />
@@ -193,28 +205,29 @@ function ShortVideo() {
                         <MessageFilled />
                         <span>{800 + index * 13}</span>
                       </button>
-                      <button className="shortvideo-action" onClick={() => void handleShare(vedio.id)} type="button">
+                      <button className="shortvideo-action" onClick={() => void handleShare(vid)} type="button">
                         <ShareAltOutlined />
-                        <span>{shareFeedbackId === vedio.id ? '已复制' : '分享'}</span>
+                        <span>{shareFeedbackId === vid ? '已复制' : '分享'}</span>
                       </button>
-                      <button
+                      {/* // 播放按钮 */}
+                      {/* <button
                         className="shortvideo-action shortvideo-action--play"
-                        onClick={() => handleTogglePlayback(vedio.id)}
+                        onClick={() => handleTogglePlayback(vedio.video_id)}
                         type="button"
                       >
                         {isPaused ? <PlayCircleFilled /> : <PauseCircleFilled />}
-                      </button>
+                      </button> */}
                     </div>
-                  </div>
+                </div>
 
-                  <div className="shortvideo-progress">
+                {/* <div className="shortvideo-progress">
                     <div className="shortvideo-progress__track">
                       <div
                         className="shortvideo-progress__fill"
                         style={{ width: `${Math.min(Math.max(progressPercent, 0), 100)}%` }}
                       />
                     </div>
-                  </div>
+                    </div> */}
                 </div>
 
                 <aside
@@ -227,7 +240,7 @@ function ShortVideo() {
                       <CloseOutlined />
                     </button>
                   </div>
-
+                    {/* // 评论列表 */}
                   <div className="shortvideo-comment-list">
                     {commentItems.map((item) => (
                       <div className="shortvideo-comment-item" key={item.id}>
@@ -239,7 +252,7 @@ function ShortVideo() {
                       </div>
                     ))}
                   </div>
-
+                    {/* // 评论输入框 */}
                   <div className="shortvideo-comment-input">
                     <input placeholder="善语结善缘，恶言伤人心" />
                     <button type="button">发布</button>

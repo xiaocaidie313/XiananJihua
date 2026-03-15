@@ -1,17 +1,18 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PlayCircleOutlined } from '@ant-design/icons';
-import type { Vedio } from '@/features/vedios/vediosSlice';
+import type { VideoItem } from '@/api/content/types';
 
-function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
-  const { id, title, author, cover, time } = vedio;
+function VedioCardOutLine({ vedio }: { vedio: VideoItem }) {
+  const { video_id, name, author, cover, published_at } = vedio;
   const navigate = useNavigate();
   const location = useLocation();
-  const publishedText = `${time.year}-${String(time.month).padStart(2, '0')}-${String(time.day).padStart(2, '0')}`;
+  const d = published_at ? new Date(published_at * 1000) : new Date();
+  const publishedText = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
   return (
     <article
       className="hover-rise"
-      onClick={() => navigate(`/vedios/${id}`, { state: { from: location.pathname } })}
+      onClick={() => navigate(`/vedios/${video_id}`, { state: { from: location.pathname } })}
       style={{
         width: '100%',
         display: 'flex',
@@ -32,7 +33,7 @@ function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
       >
         <img
           src={cover}
-          alt={title}
+          alt={name ?? ''}
           style={{
             width: '100%',
             height: '100%',
@@ -80,7 +81,7 @@ function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
             color: '#0f0f0f',
           }}
         >
-          {author.slice(0, 1)}
+          {(author ?? '').slice(0, 1)}
         </div>
         <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div
@@ -95,9 +96,9 @@ function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
               overflow: 'hidden',
             }}
           >
-            {title}
+            {name ?? ''}
           </div>
-          <div style={{ fontSize: '13px', color: '#606060' }}>{author}</div>
+          <div style={{ fontSize: '13px', color: '#606060' }}>{author ?? ''}</div>
           <div style={{ fontSize: '13px', color: '#606060' }}>12万次观看 · {publishedText}</div>
         </div>
       </div>

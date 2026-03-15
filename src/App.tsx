@@ -24,7 +24,7 @@ function App() {
   const canToggleSidebar = shouldShowSidebar
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isLoginPage ? ' app-shell--login' : ''}`}>
       <Header
         canToggleSidebar={canToggleSidebar}
         isSidebarCollapsed={canToggleSidebar ? isSidebarCollapsed : false}
@@ -33,7 +33,7 @@ function App() {
       <div className="app-content">
         <div className={`app-layout${shouldShowSidebar ? '' : ' no-sidebar'}${shouldShowSidebar && isSidebarCollapsed ? ' is-collapsed' : ''}`}>
           {shouldShowSidebar && <Sidebar collapsed={isSidebarCollapsed} />}
-          <main className="app-main">
+          <main className={`app-main${isLoginPage ? ' app-main--login' : ''}`}>
             <Routes> 
               <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/home" element={<Home />} />

@@ -6,7 +6,7 @@ import NewsCardOutline, { type NewsCardItem } from '../../components/newcardoutL
 import { getSixNews } from '@/features/news/newsSlice'
 import { useAppSelector } from '@/store/hooks'
 import { getCarouselImages } from '@/features/carousel/carousleSlice'
-import { getAllVedios } from '@/features/vedios/vediosSlice'
+import { useVideos } from '@/hooks/useVideos'
 import type { ArticleSummary } from '@/constants/content'
 import { getErrorMessage, unwrapResponse } from '@/utils/appState'
 import VedioCardOutline from '@/components/vediocardoutline'
@@ -14,7 +14,7 @@ import VedioCardOutline from '@/components/vediocardoutline'
 function Home() {
   const sixNews = useAppSelector(getSixNews)
   const images = useAppSelector(getCarouselImages)
-  const vedios = useAppSelector(getAllVedios)
+  const { vedios } = useVideos()
   const filters = ['全部', '推荐', '安全科普', '校园话题', '成长陪伴', '心理健康']
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [articleError, setArticleError] = useState('')
@@ -158,8 +158,8 @@ function Home() {
               </div>
             </div>
             <div className="yt-video-grid">
-              {vedios.map((vedio) => (
-                <VedioCardOutline vedio={vedio} key={vedio.id} />
+              {vedios.map((vedio, index) => (
+                <VedioCardOutline vedio={vedio} key={vedio.video_id ?? index} />
               ))}
             </div>
           </section>
@@ -187,12 +187,12 @@ function Home() {
           <div className="surface-card" style={{ padding: '20px' }}>
             <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>继续观看</div>
             <div className="info-stack">
-              {vedios.slice(0, 3).map((item) => (
-                <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '120px minmax(0, 1fr)', gap: '10px' }}>
-                  <img src={item.cover} alt={item.title} style={{ width: '120px', height: '68px', objectFit: 'cover', borderRadius: '10px' }} />
+              {vedios.slice(0, 3).map((item, i) => (
+                <div key={item.video_id ?? i} style={{ display: 'grid', gridTemplateColumns: '120px minmax(0, 1fr)', gap: '10px' }}>
+                  <img src={item.cover} alt={item.name ?? ''} style={{ width: '120px', height: '68px', objectFit: 'cover', borderRadius: '10px' }} />
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, lineHeight: 1.45, color: '#0f0f0f' }}>{item.title}</div>
-                    <div style={{ marginTop: '6px', fontSize: '12px', color: '#606060' }}>{item.author}</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, lineHeight: 1.45, color: '#0f0f0f' }}>{item.name ?? ''}</div>
+                    <div style={{ marginTop: '6px', fontSize: '12px', color: '#606060' }}>{item.author ?? ''}</div>
                   </div>
                 </div>
               ))}

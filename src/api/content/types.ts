@@ -33,6 +33,27 @@ export interface AddVideoParams {
 export interface ModifyVideoParams extends AddVideoParams {
   video_id: number
 }
+/** 返回视频的参数 */
+export interface VideoItem {
+    video_id?: number;
+    name ?: string;
+    tags ?: string[];
+    url ?: string;
+    description ?: string;
+    cover ?: string;
+    author ?: string;
+    published_at?: number;
+    created_at: number;
+    updated_at?: number;
+    like_count ?: number;
+    view_count ?: number;
+    collect_count ?: number;
+    comment_count ?: number;
+    last_modified_by?: number;
+    relation_status?: number;
+    is_liked?: boolean;
+    is_collected?: boolean;
+  }
 
 /** 添加播客参数类型 */
 export interface AddPodcastParams {

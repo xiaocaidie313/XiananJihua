@@ -45,6 +45,11 @@ img {
   flex-direction: column;
 }
 
+.app-shell.app-shell--login {
+  overflow: hidden;
+  height: 100vh;
+}
+
 .app-content {
   flex: 1;
   padding: 0 20px 24px;
@@ -90,6 +95,22 @@ img {
 .app-main {
   min-width: 0;
   padding: 20px 0 40px;
+}
+
+.app-main.app-main--chat {
+  overflow: hidden;
+  padding: 6px 0 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.app-main.app-main--login {
+  overflow: hidden;
+  height: calc(100vh - 64px);
+  min-height: 0;
+  padding: 0;
 }
 
 .page-shell {
