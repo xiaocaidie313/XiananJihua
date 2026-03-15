@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Avatar } from 'antd'
 import { CommentOutlined, LikeOutlined, ShareAltOutlined, UserOutlined } from '@ant-design/icons'
-import { getArticleInfo } from '@/api/content'
+import { collectContent, getArticleInfo, likeContent, uncollectContent, unlikeContent } from '@/api/content'
 import { getNewsById } from '@/features/news/newsSlice'
 import { useAppSelector } from '@/store/hooks'
 import type { ArticleInfo } from '@/constants/content'
-import { getErrorMessage, unwrapResponse } from '@/utils/appState'
+import { ContentTypeId } from '@/constants/content'
+import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
 import { useParams } from 'react-router-dom'
 
 function News() {
@@ -15,6 +16,11 @@ function News() {
   const [article, setArticle] = useState<ArticleInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [actionFeedback, setActionFeedback] = useState('')
+  const [likeCount, setLikeCount] = useState<number | null>(null)
+  const [collectCount, setCollectCount] = useState<number | null>(null)
+  const [isLiked, setIsLiked] = useState(false)
+  const [isCollected, setIsCollected] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -25,7 +31,7 @@ function News() {
         const response = await getArticleInfo(articleId)
         const data = unwrapResponse(response)
         if (active) {
-          setArticle(data.article || null)
+          setArticle(data?.article ?? null)
           setError('')
         }
       } catch (loadError) {
@@ -50,6 +56,69 @@ function News() {
     }
   }, [articleId])
 
+  useEffect(() => {
+    if (article) {
+      setLikeCount(article.like_count)
+      setCollectCount(article.collect_count)
+      setIsLiked(Boolean(article.is_liked))
+      setIsCollected(Boolean(article.is_collected))
+    } else if (fallbackNews) {
+      setLikeCount(456)
+      setCollectCount(123)
+      setIsLiked(false)
+      setIsCollected(false)
+    }
+  }, [article, fallbackNews])
+
+  const contentId = article?.article_id ?? articleId
+  const userId = getCurrentUserId()
+
+  const handleLike = useCallback(async () => {
+    if (!userId) {
+      setActionFeedback('请先登录后再点赞')
+      return
+    }
+    try {
+      if (isLiked) {
+        await unlikeContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        setLikeCount((c) => (c ?? 0) - 1)
+        setIsLiked(false)
+      } else {
+        await likeContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        setLikeCount((c) => (c ?? 0) + 1)
+        setIsLiked(true)
+      }
+      setActionFeedback('')
+    } catch (e) {
+      setActionFeedback(getErrorMessage(e, '操作失败，请稍后重试'))
+    }
+  }, [contentId, isLiked, userId])
+
+  const handleCollect = useCallback(async () => {
+    if (!userId) {
+      setActionFeedback('请先登录后再收藏')
+      return
+    }
+    try {
+      if (isCollected) {
+        await uncollectContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        setCollectCount((c) => (c ?? 0) - 1)
+        setIsCollected(false)
+      } else {
+        await collectContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        setCollectCount((c) => (c ?? 0) + 1)
+        setIsCollected(true)
+      }
+      setActionFeedback('')
+    } catch (e) {
+      setActionFeedback(getErrorMessage(e, '操作失败，请稍后重试'))
+    }
+  }, [contentId, isCollected, userId])
+
+  const handleComment = useCallback(() => {
+    setActionFeedback('评论功能开发中，敬请期待')
+  }, [])
+
   const contentState = useMemo(() => {
     if (article) {
       const publishedAt = article.published_at ? new Date(article.published_at) : null
@@ -60,9 +129,9 @@ function News() {
         subtitle: publishedAt
           ? `${article.author} · ${publishedAt.toLocaleString('zh-CN')} · ${article.view_count} 次阅读`
           : `${article.author} · 文章频道`,
-        likeCount: article.like_count,
+        likeCount: likeCount ?? article.like_count,
         commentCount: article.comment_count,
-        shareCount: article.collect_count,
+        shareCount: collectCount ?? article.collect_count,
       }
     }
 
@@ -72,14 +141,14 @@ function News() {
         author: fallbackNews.author,
         content: fallbackNews.content,
         subtitle: `${fallbackNews.author} · ${fallbackNews.time.year}年${fallbackNews.time.month}月${fallbackNews.time.day}日 ${fallbackNews.time.hour}:${fallbackNews.time.minute} · ${fallbackNews.province}`,
-        likeCount: 456,
+        likeCount: likeCount ?? 456,
         commentCount: 789,
-        shareCount: 123,
+        shareCount: collectCount ?? 123,
       }
     }
 
     return null
-  }, [article, fallbackNews])
+  }, [article, fallbackNews, likeCount, collectCount])
 
   if (loading && !contentState) {
     return <div className="page-shell">内容加载中...</div>
@@ -133,10 +202,52 @@ function News() {
             <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>
               文章操作
             </div>
+            {actionFeedback && (
+              <div style={{ marginBottom: '12px', fontSize: '13px', color: '#b45309' }}>{actionFeedback}</div>
+            )}
             <div className="info-stack">
-              <div className="info-row"><strong><LikeOutlined /> 点赞</strong><span>{contentState.likeCount}</span></div>
-              <div className="info-row"><strong><CommentOutlined /> 评论</strong><span>{contentState.commentCount}</span></div>
-              <div className="info-row"><strong><ShareAltOutlined /> 收藏</strong><span>{contentState.shareCount}</span></div>
+              <button
+                type="button"
+                onClick={() => void handleLike()}
+                className="info-row"
+                style={{
+                  width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                  padding: '10px 0', borderRadius: '8px',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <strong><LikeOutlined style={{ color: isLiked ? '#ff2c55' : undefined }} /> 点赞</strong>
+                <span>{contentState.likeCount}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleComment}
+                className="info-row"
+                style={{
+                  width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                  padding: '10px 0', borderRadius: '8px',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <strong><CommentOutlined /> 评论</strong>
+                <span>{contentState.commentCount}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleCollect()}
+                className="info-row"
+                style={{
+                  width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                  padding: '10px 0', borderRadius: '8px',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <strong><ShareAltOutlined style={{ color: isCollected ? '#7c3aed' : undefined }} /> 收藏</strong>
+                <span>{contentState.shareCount}</span>
+              </button>
             </div>
           </div>
 
@@ -145,7 +256,7 @@ function News() {
               阅读提示
             </div>
             <div style={{ fontSize: '14px', lineHeight: 1.8, color: '#64748b' }}>
-              详情页现在会优先读取真实文章接口，保留网页侧边信息区，让桌面端阅读更聚焦。
+              点击文章卡片可进入详情页阅读。
             </div>
           </div>
         </aside>

@@ -1,12 +1,12 @@
 import type { Tag } from '../../api/content/types'
 
 /** 内容类型 */
-export enum ContentTypeId {
-  video_id = 'video_id',
-  article_id = 'article_id',
-  podcast_id = 'podcast_id',
-  comic_id = 'comic_id',
-}
+export const ContentTypeId = {
+  video_id: 'video_id',
+  article_id: 'article_id',
+  podcast_id: 'podcast_id',
+  comic_id: 'comic_id',
+} as const
 
 /** 内容响应 */
 export interface ResponseContent {

@@ -27,7 +27,7 @@ function Home() {
         const response = await getNewArticles({ page_size: 6, cursor: 0 })
         const data = unwrapResponse(response)
         if (active) {
-          setArticles(data.articles || [])
+          setArticles(data?.articles ?? [])
           setArticleError('')
         }
       } catch (error) {
@@ -84,7 +84,6 @@ function Home() {
             <div className="section-head">
               <div>
                 <div className="section-title">本周精选</div>
-                <div className="section-meta">像 YouTube 首页一样先展示重点内容横幅</div>
               </div>
               <span className="soft-tag">Featured</span>
             </div>
@@ -147,7 +146,6 @@ function Home() {
             <div className="section-head">
               <div>
                 <div className="section-title">频道导航</div>
-                <div className="section-meta">保留频道入口，但弱化为首页中的一个模块</div>
               </div>
             </div>
             <Nav />
@@ -157,7 +155,6 @@ function Home() {
             <div className="section-head">
               <div>
                 <div className="section-title">推荐视频</div>
-                <div className="section-meta">核心内容区采用更接近 YouTube 首页的视频流</div>
               </div>
             </div>
             <div className="yt-video-grid">
@@ -171,7 +168,6 @@ function Home() {
             <div className="section-head">
               <div>
                 <div className="section-title">最新文章</div>
-                <div className="section-meta">首页优先读取真实文章接口，失败时回退到原有新闻内容</div>
               </div>
             </div>
             {articleError && (

@@ -1,4 +1,4 @@
-import { LoginType, RoleType } from '../../constants/auth'
+import type { LoginType, RoleType } from '../../constants/auth'
 
 /** 邮箱验证参数 */
 export interface EmailParams {

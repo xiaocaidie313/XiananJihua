@@ -1,10 +1,8 @@
 import type { LoginSuccess, UserInfo } from '../constants/auth'
-import type { SessionType } from '../constants/qa'
 import type { CommonResponse } from './http'
 
 const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
-const CHAT_SESSION_KEY = 'qa_session_id'
 
 export function unwrapResponse<T>(response: CommonResponse<T> | T): T {
   if (response && typeof response === 'object' && 'data' in (response as CommonResponse<T>)) {
@@ -50,16 +48,7 @@ export function getCurrentUserId(): number {
   return Number(user?.user_id || 0)
 }
 
-export function getChatSessionId(): number {
-  return Number(localStorage.getItem(CHAT_SESSION_KEY) || 0)
-}
-
-export function setChatSession(session: SessionType) {
-  localStorage.setItem(CHAT_SESSION_KEY, String(session.session.session_id))
-}
-
 export function clearLoginInfo() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
-  localStorage.removeItem(CHAT_SESSION_KEY)
 }

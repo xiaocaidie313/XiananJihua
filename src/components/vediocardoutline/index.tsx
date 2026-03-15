@@ -11,7 +11,7 @@ function VedioCardOutLine({ vedio }: { vedio: Vedio }) {
   return (
     <article
       className="hover-rise"
-      onClick={() => navigate(`/shortvideo/details/${id}`, { state: { from: location.pathname } })}
+      onClick={() => navigate(`/vedios/${id}`, { state: { from: location.pathname } })}
       style={{
         width: '100%',
         display: 'flex',

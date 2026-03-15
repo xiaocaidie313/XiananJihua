@@ -22,6 +22,7 @@ function Sidebar({ collapsed = false }: SidebarProps) {
   const primaryItems = [
     { label: '首页', path: '/home', icon: <HomeOutlined /> },
     { label: '短视频', path: '/shortvideo', icon: <PlaySquareOutlined /> },
+    { label: '长视频', path: '/vedios', icon: <PlaySquareOutlined /> },
     { label: '文章', path: '/article', icon: <ReadOutlined /> },
     { label: '条漫', path: '/cartoon', icon: <CompassOutlined /> },
     { label: '播客', path: '/podcast', icon: <CustomerServiceOutlined /> },

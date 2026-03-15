@@ -20,8 +20,7 @@ function Warn() {
     <div className="page-shell">
       <section className="page-hero">
         <span className="soft-tag">安全求助</span>
-        <h1 className="page-title" style={{ marginTop: "16px" }}>网页化紧急帮助中心</h1>
-        <p className="page-subtitle">将原来的移动端求助页改成桌面端控制台式布局，保留原有求助入口和呼叫逻辑。</p>
+        <h1 className="page-title" style={{ marginTop: "16px" }}>紧急帮助中心</h1>
       </section>
 
       <div className="page-content-grid">

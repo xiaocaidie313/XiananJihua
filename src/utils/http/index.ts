@@ -2,11 +2,11 @@ import axios, { type AxiosRequestConfig, type AxiosRequestHeaders } from 'axios'
 
 const baseURL = 'https://xiaoanjihua.cc'
 
-enum Method {
-  GET = 'GET',
-  POST = 'POST',
-  DELETE = 'DELETE',
-}
+const Method = {
+  GET: 'GET',
+  POST: 'POST',
+  DELETE: 'DELETE',
+} as const
 
 /**
  * 通用响应体
@@ -25,7 +25,7 @@ interface RequestConfig {
 
 function fetch<T>(
   fetchUrl: string,
-  method: Method,
+  method: (typeof Method)[keyof typeof Method],
   params?: unknown,
   config?: RequestConfig,
 ): Promise<T> {

@@ -1,3 +1,9 @@
+/** 前端约定：消息类型 1=用户 2=助手 */
+export const MessageType = {
+  USER: 1,
+  ASSISTANT: 2,
+} as const
+
 /** 会话信息 */
 export interface SessionInfo {
   session_id: number

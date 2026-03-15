@@ -1,7 +1,6 @@
 import { Avatar } from "antd";
 import {
     HeartFilled,
-    MessageFilled,
     ShareAltOutlined,
     PlusOutlined,
     UserOutlined
@@ -12,7 +11,14 @@ import { useAppSelector } from "@/store/hooks";
 import { getAllVedios, getVedioById } from "@/features/vedios/vediosSlice";
 import { useState } from 'react';
 import './index.css';
-import CommentField from "@/components/commentfield";
+
+const commentItems = [
+    { id: 1, user: '用户 1', text: '这是第 1 条评论的内容，感觉这个视频非常有意义！' },
+    { id: 2, user: '用户 2', text: '这是第 2 条评论的内容，感觉这个视频非常有意义！' },
+    { id: 3, user: '用户 3', text: '这是第 3 条评论的内容，感觉这个视频非常有意义！' },
+    { id: 4, user: '用户 4', text: '这是第 4 条评论的内容，感觉这个视频非常有意义！' },
+    { id: 5, user: '用户 5', text: '这是第 5 条评论的内容，感觉这个视频非常有意义！' },
+];
 
 function Vedios() {
     const navigate = useNavigate();
@@ -20,7 +26,6 @@ function Vedios() {
     const vedio = useAppSelector(state => getVedioById(state, Number(id)));
     const allVedios = useAppSelector(getAllVedios);
     const [like, setLike] = useState(false);
-    const [riseComment, setRiseComment] = useState(false);
     const recommendVedios = allVedios.filter(item => item.id !== Number(id)).slice(0, 5);
 
     if (!vedio) return <div style={{ color: '#334155', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
@@ -114,10 +119,6 @@ function Vedios() {
                                     <HeartFilled className={`like-icon ${like ? 'like-icon-active' : ''}`} />
                                     <span>12.5w</span>
                                 </button>
-                                <button className="yt-watch-action" onClick={() => setRiseComment(true)} type="button">
-                                    <MessageFilled />
-                                    <span>8562</span>
-                                </button>
                                 <button className="yt-watch-action" type="button">
                                     <ShareAltOutlined />
                                     <span>分享</span>
@@ -139,6 +140,37 @@ function Vedios() {
                             </div>
                             <div style={{ marginTop: '8px', fontSize: '14px', color: '#606060' }}>原声 - {vedio.author} 的音乐花园</div>
                         </div>
+
+                        <div className="surface-card" style={{ padding: '20px', marginTop: '20px' }}>
+                            <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f0f0f', marginBottom: '16px' }}>8562 条评论</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                {commentItems.map((item) => (
+                                    <div key={item.id} style={{ display: 'flex', gap: '12px' }}>
+                                        <Avatar icon={<UserOutlined />} size={32} />
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: '13px', color: '#606060', marginBottom: '4px' }}>{item.user}</div>
+                                            <div style={{ fontSize: '15px', color: '#0f0f0f', lineHeight: 1.5 }}>{item.text}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '16px', borderTop: '1px solid #ebebeb' }}>
+                                <input
+                                    placeholder="善语结善缘，恶言伤人心"
+                                    style={{
+                                        flex: 1,
+                                        height: '40px',
+                                        background: '#f5f5f5',
+                                        borderRadius: '20px',
+                                        border: 'none',
+                                        padding: '0 16px',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                    }}
+                                />
+                                <span style={{ color: '#FF2C55', fontWeight: 600, cursor: 'pointer' }}>发布</span>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -149,7 +181,7 @@ function Vedios() {
                             {recommendVedios.map((item) => (
                                 <button
                                     key={item.id}
-                                    onClick={() => navigate(`/shortvideo/details/${item.id}`)}
+                                    onClick={() => navigate(`/vedios/${item.id}`)}
                                     style={{
                                         width: '100%',
                                         border: 'none',
@@ -183,11 +215,6 @@ function Vedios() {
                     </div>
                 </aside>
             </div>
-
-            <CommentField 
-                visible={riseComment} 
-                onClose={() => setRiseComment(false)} 
-            />
         </div>
     );
 }

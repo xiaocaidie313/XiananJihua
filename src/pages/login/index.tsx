@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
+import {
+  IdcardOutlined,
+  LockOutlined,
+  MailOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons'
 import { login, register, sendEmailCode } from '@/api/auth'
 import { LoginType } from '@/constants/auth'
 import { getErrorMessage, saveLoginInfo, unwrapResponse } from '@/utils/appState'
 import { useNavigate } from 'react-router-dom'
+import './index.css'
 
 type AuthMode = 'login' | 'register'
 
@@ -61,9 +68,13 @@ function LoginPage() {
         type: LoginType.password,
       })
       const data = unwrapResponse(response)
+      if (!data?.token) {
+        setFeedback('登录响应异常，请稍后重试')
+        return
+      }
       saveLoginInfo(data)
       setFeedback('登录成功，正在跳转个人中心')
-      window.setTimeout(() => navigate('/me'), 500)
+      window.setTimeout(() => navigate('/me', { replace: true, state: { justLoggedIn: true } }), 500)
     } catch (error) {
       setFeedback(getErrorMessage(error, '登录失败，请稍后再试'))
     } finally {
@@ -123,37 +134,26 @@ function LoginPage() {
   }
 
   return (
-    <div className="page-shell">
-      <section className="page-hero">
-        <span className="soft-tag">认证中心</span>
-        <h1 className="page-title" style={{ marginTop: '16px' }}>
-          完整登录与注册能力已经补上
-        </h1>
-        <p className="page-subtitle">
-          支持账号密码登录、邮箱验证码注册、登录态持久化。登录成功后会直接写入本地 token 和用户信息。
-        </p>
-      </section>
-
-      <div className="page-content-grid">
-        <section className="surface-card" style={{ padding: '28px', minWidth: 0 }}>
+    <div className="login-page">
+      <div className="login-center">
+        <section className="surface-card login-panel">
           <div className="section-head">
             <div>
               <div className="section-title">欢迎来到小安</div>
-              <div className="section-meta">网页端已经补齐独立认证入口</div>
             </div>
             <span className="soft-tag">{panelTitle}</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px', marginTop: '20px' }}>
+          <div className="login-mode-switch">
             <button
-              className={`header-action${mode === 'login' ? '' : ' subtle'}`}
+              className={`login-mode-switch__button${mode === 'login' ? ' is-active' : ''}`}
               onClick={() => setMode('login')}
               type="button"
             >
               登录
             </button>
             <button
-              className={`header-action${mode === 'register' ? '' : ' subtle'}`}
+              className={`login-mode-switch__button${mode === 'register' ? ' is-active' : ''}`}
               onClick={() => setMode('register')}
               type="button"
             >
@@ -162,65 +162,75 @@ function LoginPage() {
           </div>
 
           {feedback && (
-            <div
-              style={{
-                marginTop: '18px',
-                padding: '12px 14px',
-                borderRadius: '12px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                color: '#334155',
-                fontSize: '14px',
-              }}
-            >
+            <div className="login-feedback">
               {feedback}
             </div>
           )}
 
           {mode === 'login' ? (
-            <div style={{ marginTop: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <input
-                type="email"
-                placeholder="邮箱"
-                value={loginForm.email}
-                onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
-                className="search-input"
-                style={{ height: '50px', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '0 16px' }}
-              />
-              <input
-                type="password"
-                placeholder="密码"
-                value={loginForm.password}
-                onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
-                className="search-input"
-                style={{ height: '50px', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '0 16px' }}
-              />
-              <button className="header-action" disabled={loading} onClick={() => void handleLogin()} type="button">
+            <div className="login-form">
+              <label className="login-field">
+                <span className="login-field__label">邮箱账号</span>
+                <div className="login-field__control">
+                  <span className="login-field__icon"><MailOutlined /></span>
+                  <input
+                    type="email"
+                    placeholder="请输入邮箱"
+                    value={loginForm.email}
+                    onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
+                    className="login-field__input"
+                  />
+                </div>
+              </label>
+              <label className="login-field">
+                <span className="login-field__label">登录密码</span>
+                <div className="login-field__control">
+                  <span className="login-field__icon"><LockOutlined /></span>
+                  <input
+                    type="password"
+                    placeholder="请输入密码"
+                    value={loginForm.password}
+                    onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
+                    className="login-field__input"
+                  />
+                </div>
+              </label>
+              <button className="login-submit" disabled={loading} onClick={() => void handleLogin()} type="button">
                 {loading ? '登录中...' : '立即登录'}
               </button>
             </div>
           ) : (
-            <div style={{ marginTop: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <input
-                type="email"
-                placeholder="注册邮箱"
-                value={registerForm.email}
-                onChange={(event) => setRegisterForm((prev) => ({ ...prev, email: event.target.value }))}
-                className="search-input"
-                style={{ height: '50px', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '0 16px' }}
-              />
+            <div className="login-form">
+              <label className="login-field">
+                <span className="login-field__label">注册邮箱</span>
+                <div className="login-field__control">
+                  <span className="login-field__icon"><MailOutlined /></span>
+                  <input
+                    type="email"
+                    placeholder="请输入注册邮箱"
+                    value={registerForm.email}
+                    onChange={(event) => setRegisterForm((prev) => ({ ...prev, email: event.target.value }))}
+                    className="login-field__input"
+                  />
+                </div>
+              </label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 148px', gap: '12px' }}>
-                <input
-                  type="text"
-                  placeholder="邮箱验证码"
-                  value={registerForm.email_code}
-                  onChange={(event) => setRegisterForm((prev) => ({ ...prev, email_code: event.target.value }))}
-                  className="search-input"
-                  style={{ height: '50px', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '0 16px' }}
-                />
+              <div className="login-code-row">
+                <label className="login-field">
+                  <span className="login-field__label">邮箱验证码</span>
+                  <div className="login-field__control">
+                    <span className="login-field__icon"><SafetyCertificateOutlined /></span>
+                    <input
+                      type="text"
+                      placeholder="输入验证码"
+                      value={registerForm.email_code}
+                      onChange={(event) => setRegisterForm((prev) => ({ ...prev, email_code: event.target.value }))}
+                      className="login-field__input"
+                    />
+                  </div>
+                </label>
                 <button
-                  className="header-action subtle"
+                  className="login-code-button"
                   disabled={sendingCode || countdown > 0}
                   onClick={() => void handleSendCode()}
                   type="button"
@@ -229,46 +239,38 @@ function LoginPage() {
                 </button>
               </div>
 
-              <input
-                type="text"
-                placeholder="邀请码"
-                value={registerForm.invite_code_used}
-                onChange={(event) => setRegisterForm((prev) => ({ ...prev, invite_code_used: event.target.value }))}
-                className="search-input"
-                style={{ height: '50px', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '0 16px' }}
-              />
-              <input
-                type="password"
-                placeholder="设置密码"
-                value={registerForm.password}
-                onChange={(event) => setRegisterForm((prev) => ({ ...prev, password: event.target.value }))}
-                className="search-input"
-                style={{ height: '50px', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '0 16px' }}
-              />
-              <button className="header-action" disabled={loading} onClick={() => void handleRegister()} type="button">
+              <label className="login-field">
+                <span className="login-field__label">邀请码</span>
+                <div className="login-field__control">
+                  <span className="login-field__icon"><IdcardOutlined /></span>
+                  <input
+                    type="text"
+                    placeholder="请输入邀请码"
+                    value={registerForm.invite_code_used}
+                    onChange={(event) => setRegisterForm((prev) => ({ ...prev, invite_code_used: event.target.value }))}
+                    className="login-field__input"
+                  />
+                </div>
+              </label>
+              <label className="login-field">
+                <span className="login-field__label">设置密码</span>
+                <div className="login-field__control">
+                  <span className="login-field__icon"><LockOutlined /></span>
+                  <input
+                    type="password"
+                    placeholder="设置登录密码"
+                    value={registerForm.password}
+                    onChange={(event) => setRegisterForm((prev) => ({ ...prev, password: event.target.value }))}
+                    className="login-field__input"
+                  />
+                </div>
+              </label>
+              <button className="login-submit" disabled={loading} onClick={() => void handleRegister()} type="button">
                 {loading ? '提交中...' : '完成注册'}
               </button>
             </div>
           )}
         </section>
-
-        <aside className="page-side-column">
-          <div className="surface-card" style={{ padding: '22px' }}>
-            <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>本次补齐的能力</div>
-            <div className="info-stack">
-              <div className="info-row"><strong>登录</strong><span>邮箱 + 密码</span></div>
-              <div className="info-row"><strong>注册</strong><span>邮箱验证码 + 邀请码</span></div>
-              <div className="info-row"><strong>状态持久化</strong><span>token / user</span></div>
-            </div>
-          </div>
-
-          <div className="surface-card" style={{ padding: '22px' }}>
-            <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>下一步使用</div>
-            <div style={{ fontSize: '14px', lineHeight: 1.8, color: '#64748b' }}>
-              登录成功后，可以直接进入个人中心查看用户信息，也可以进入 AI 对话页开始真实会话。
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   )

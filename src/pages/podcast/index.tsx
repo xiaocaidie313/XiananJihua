@@ -81,9 +81,6 @@ function Podcast() {
         <h1 className="page-title" style={{ marginTop: '16px', color: 'white' }}>
           网页化的播客收听体验
         </h1>
-        <p className="page-subtitle" style={{ color: 'rgba(255,255,255,0.72)' }}>
-          保留原有音频播放和节目段落信息，但改成更接近内容平台网页的左右分栏工作区。
-        </p>
       </section>
 
       <div className="podcast-layout">
@@ -148,7 +145,6 @@ function Podcast() {
           <div className="section-head">
             <div>
               <div className="section-title">节目分段</div>
-              <div className="section-meta">延续原有小节数据，改成网页列表卡片</div>
             </div>
             <span className="soft-tag">{sections.length} 个片段</span>
           </div>

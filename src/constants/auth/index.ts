@@ -1,16 +1,20 @@
 /** 登录类型 */
-export enum LoginType {
-  email_code = 'email_code',
-  password = 'password',
-}
+export const LoginType = {
+  email_code: 'email_code',
+  password: 'password',
+} as const
+
+export type LoginType = (typeof LoginType)[keyof typeof LoginType]
 
 /** 角色类型 */
-export enum RoleType {
-  superadmin = 'superadmin',
-  class_admin = 'classadmin',
-  student = 'student',
-  staff = 'staff',
-}
+export const RoleType = {
+  superadmin: 'superadmin',
+  class_admin: 'classadmin',
+  student: 'student',
+  staff: 'staff',
+} as const
+
+export type RoleType = (typeof RoleType)[keyof typeof RoleType]
 
 /** 班级信息 */
 export interface ClassInfo {

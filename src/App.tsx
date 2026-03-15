@@ -1,4 +1,3 @@
-import Footer from './components/footer'
 import Header from './components/header'
 import Sidebar from './components/sidebar'
 import { useState } from 'react'
@@ -13,27 +12,29 @@ import News from './pages/news'
 import Podcast from './pages/podcast'
 import ShortVideo from './pages/shortvedio'
 import Vedios from './pages/shortvedio/details'
+import VediosList from './pages/vedios'
 import Warn from './pages/warn'
 
 function App() {
   const location = useLocation()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const isChatPage = location.pathname.startsWith('/chat')
   const isLoginPage = location.pathname.startsWith('/login')
-  const shouldShowFooter = !isChatPage && !isLoginPage
-  const shouldShowSidebar = !isChatPage && !isLoginPage
+  // const shouldShowFooter = !location.pathname.startsWith('/chat') && !isLoginPage
+  const shouldShowSidebar = !isLoginPage
+  const canToggleSidebar = shouldShowSidebar
 
   return (
     <div className="app-shell">
       <Header
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+        canToggleSidebar={canToggleSidebar}
+        isSidebarCollapsed={canToggleSidebar ? isSidebarCollapsed : false}
+        onToggleSidebar={canToggleSidebar ? () => setIsSidebarCollapsed((prev) => !prev) : undefined}
       />
       <div className="app-content">
-        <div className={`app-layout${shouldShowSidebar ? '' : ' no-sidebar'}${isSidebarCollapsed ? ' is-collapsed' : ''}`}>
+        <div className={`app-layout${shouldShowSidebar ? '' : ' no-sidebar'}${shouldShowSidebar && isSidebarCollapsed ? ' is-collapsed' : ''}`}>
           {shouldShowSidebar && <Sidebar collapsed={isSidebarCollapsed} />}
           <main className="app-main">
-            <Routes>
+            <Routes> 
               <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/home" element={<Home />} />
               <Route path="/login" element={<LoginPage />} />
@@ -43,7 +44,8 @@ function App() {
               <Route path="/news/:id" element={<News />} />
               <Route path="/me" element={<Me />} />
               <Route path="/shortvideo" element={<ShortVideo />} />
-              <Route path="/shortvideo/details/:id" element={<Vedios />} />
+              <Route path="/vedios" element={<VediosList />} />
+              <Route path="/vedios/:id" element={<Vedios />} />
               <Route path="/cartoon" element={<Cartoon />} />
               <Route path="/podcast" element={<Podcast />} />
               <Route path="*" element={<Navigate to="/" />} />
@@ -51,7 +53,7 @@ function App() {
           </main>
         </div>
       </div>
-      {shouldShowFooter && <Footer />}
+      {/* {shouldShowFooter && <Footer />} */}
     </div>
   )
 }

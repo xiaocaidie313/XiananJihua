@@ -12,32 +12,57 @@ import {
 import { getUserInfo } from '@/api/auth'
 import type { UserInfo } from '@/constants/auth'
 import { clearLoginInfo, getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import './index.css'
 
 function Me() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState<UserInfo | null>(getStoredUser())
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState('')
 
+  const roleTextMap: Record<string, string> = {
+    superadmin: '超级管理员',
+    classadmin: '班级管理员',
+    student: '学生用户',
+    staff: '教职工',
+  }
+
+  const displayName = user?.name || (user?.email ? user.email.split('@')[0] : '未登录用户')
+  const displayRole = user?.role ? roleTextMap[user.role] || user.role : '游客'
+  const displayPhone = user?.phone || '未填写手机号'
+
   const loadUser = async () => {
+    const cachedUser = getStoredUser()
     const userId = getCurrentUserId()
 
     if (!userId) {
-      setUser(null)
+      setUser(cachedUser)
+      if (!cachedUser) {
+        setFeedback('当前还没有登录，请先登录')
+      }
       return
     }
 
     try {
       setLoading(true)
       const response = await getUserInfo({ user_id: userId })
-      const data = unwrapResponse<any>(response)
-      const nextUser = data.user || data
+      const data = unwrapResponse<UserInfo | { user: UserInfo } | null>(response)
+
+      if (!data) {
+        setUser(cachedUser)
+        setFeedback(cachedUser ? '用户详情接口暂时为空，当前先展示本地登录信息' : '当前账号暂无可展示的用户资料')
+        return
+      }
+
+      const nextUser = typeof data === 'object' && 'user' in data ? data.user : data
       setUser(nextUser)
       localStorage.setItem('user', JSON.stringify(nextUser))
       setFeedback('')
     } catch (error) {
-      setFeedback(getErrorMessage(error, '用户信息加载失败，请稍后重试'))
+      setUser(cachedUser)
+      setFeedback(getErrorMessage(error, cachedUser ? '用户详情接口加载失败，当前先展示本地登录信息' : '用户信息加载失败，请稍后重试'))
     } finally {
       setLoading(false)
     }
@@ -46,6 +71,15 @@ function Me() {
   useEffect(() => {
     void loadUser()
   }, [])
+
+  useEffect(() => {
+    const pageState = location.state as { justLoggedIn?: boolean } | null
+
+    if (pageState?.justLoggedIn) {
+      setFeedback('登录成功，当前已进入我的主页')
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.pathname, location.state, navigate])
 
   const menuItems = useMemo(() => {
     return [
@@ -68,54 +102,38 @@ function Me() {
   }, [navigate])
 
   return (
-    <div className="page-shell">
-      <section className="page-hero">
-        <span className="soft-tag">个人中心</span>
-        <h1 className="page-title" style={{ marginTop: '16px' }}>
-          账号状态和用户资料已经接入真实认证链路
-        </h1>
-        <p className="page-subtitle">
-          这里会优先读取本地登录态，再通过用户信息接口刷新最新资料；未登录时可直接跳转到认证页。
-        </p>
-      </section>
-
-      <div className="page-content-grid">
-        <section className="surface-card" style={{ padding: '28px' }}>
-          <div
-            className="lightpurple"
-            style={{
-              width: '100%',
-              padding: '30px 24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              borderRadius: '24px',
-              gap: '20px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+    <div className="page-shell me-page">
+      <section className="surface-card me-profile-card">
+        <div className="me-profile-header">
+          <div className="me-profile-main">
+            <div className="me-profile-avatar-frame">
               <Avatar
-                size={76}
+                size={92}
                 icon={<UserOutlined />}
                 src={user?.avatar || undefined}
                 style={{
-                  backgroundColor: '#891DB4',
-                  border: '4px solid white',
-                  boxShadow: '0 8px 24px rgba(137, 29, 180, 0.18)',
+                  backgroundColor: '#7c3aed',
+                  boxShadow: '0 12px 28px rgba(124, 58, 237, 0.22)',
                 }}
               />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
-                  {user?.name || '未登录用户'}
-                </span>
-                <span style={{ fontSize: '14px', color: '#5b6475' }}>
-                  {user?.email || '登录后可查看个人资料与最近活动记录'}
-                </span>
+            </div>
+            <div className="me-profile-copy">
+              <span className="soft-tag">{user ? '我的主页' : '游客状态'}</span>
+              <div className="me-profile-name">{displayName}</div>
+              <div className="me-profile-desc">
+                {user?.email || '登录后可同步个人资料、对话记录和内容交互状态'}
+              </div>
+              <div className="me-profile-meta">
+                <span>{displayRole}</span>
+                <span>{loading ? '资料同步中' : user ? '已登录' : '未登录'}</span>
+                <span>{user?.department || '暂无部门信息'}</span>
               </div>
             </div>
+          </div>
 
+          <div className="me-profile-actions">
             {user ? (
-              <div style={{ display: 'flex', gap: '12px' }}>
+              <>
                 <button className="header-action subtle" onClick={() => void loadUser()} type="button">
                   <ReloadOutlined />
                   <span style={{ marginLeft: '6px' }}>刷新资料</span>
@@ -132,44 +150,48 @@ function Me() {
                   <LogoutOutlined />
                   <span style={{ marginLeft: '6px' }}>退出登录</span>
                 </button>
-              </div>
+              </>
             ) : (
               <button className="header-action" onClick={() => navigate('/login')} type="button">
                 去登录
               </button>
             )}
           </div>
+        </div>
 
-          {feedback && (
-            <div
-              style={{
-                marginTop: '18px',
-                padding: '12px 14px',
-                borderRadius: '12px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                color: '#334155',
-                fontSize: '14px',
-              }}
-            >
-              {feedback}
+        <div className="me-profile-stats">
+          <div className="me-profile-stat-card">
+            <span className="me-profile-stat-card__label">账号状态</span>
+            <strong>{loading ? '同步中' : user ? '正常使用中' : '等待登录'}</strong>
+          </div>
+          <div className="me-profile-stat-card">
+            <span className="me-profile-stat-card__label">邀请码</span>
+            <strong>{user?.invite_code_used || '-'}</strong>
+          </div>
+          <div className="me-profile-stat-card">
+            <span className="me-profile-stat-card__label">班级 ID</span>
+            <strong>{user?.class_id || '-'}</strong>
+          </div>
+        </div>
+
+        {feedback && <div className="me-feedback">{feedback}</div>}
+      </section>
+
+      <div className="page-content-grid">
+        <section className="surface-card me-menu-card">
+          <div className="section-head">
+            <div>
+              <div className="section-title">常用入口</div>
             </div>
-          )}
+          </div>
 
-          <div style={{ marginTop: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="me-menu-list">
             {menuItems.map((item, index) => (
               <div
                 key={index}
                 onClick={item.onClick}
                 className="section-card hover-rise"
-                style={{
-                  width: '100%',
-                  padding: '22px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  cursor: 'pointer',
-                }}
+                style={{ width: '100%', padding: '22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <div
@@ -194,11 +216,11 @@ function Me() {
           </div>
         </section>
 
-        <aside className="page-side-column">
+        <aside className="page-side-column me-side-column">
           <div className="surface-card" style={{ padding: '22px' }}>
             <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>账号概览</div>
             <div className="info-stack">
-              <div className="info-row"><strong>身份</strong><span>{user?.role || '游客'}</span></div>
+              <div className="info-row"><strong>身份</strong><span>{displayRole}</span></div>
               <div className="info-row"><strong>邮箱</strong><span>{user?.email || '未登录'}</span></div>
               <div className="info-row"><strong>状态</strong><span>{loading ? '同步中' : user ? '已登录' : '未登录'}</span></div>
             </div>
@@ -208,6 +230,8 @@ function Me() {
             <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>资料信息</div>
             <div className="info-stack">
               <div className="info-row"><strong>部门</strong><span>{user?.department || '-'}</span></div>
+              <div className="info-row"><strong>手机号</strong><span>{displayPhone}</span></div>
+              <div className="info-row"><strong>用户 ID</strong><span>{user?.user_id || '-'}</span></div>
               <div className="info-row"><strong>班级 ID</strong><span>{user?.class_id || '-'}</span></div>
               <div className="info-row"><strong>邀请码</strong><span>{user?.invite_code_used || '-'}</span></div>
             </div>

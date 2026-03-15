@@ -1,0 +1,28 @@
+.vedios-page .vedios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px 28px;
+  width: 100%;
+}
+
+.vedios-page .vedios-grid article > div:first-child {
+  border-radius: 16px;
+}
+
+.vedios-page .vedios-grid article > div:first-child .anticon {
+  font-size: 28px;
+}
+
+.vedios-page .vedios-grid article > div:last-child > div:first-child {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.vedios-page .vedios-grid article > div:last-child > div:last-child > div:first-child {
+  font-size: 17px;
+}
+
+.vedios-page .vedios-grid article > div:last-child > div:last-child > div:not(:first-child) {
+  font-size: 14px;
+}

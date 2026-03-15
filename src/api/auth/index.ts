@@ -23,7 +23,7 @@ import type {
  * 发送邮箱验证码
  */
 export const sendEmailCode = (params: EmailParams) => {
-  return instance.post<CommonResponse<Record<string, never>>>('/api/sendEmailCode', params)
+  return instance.post<CommonResponse<Record<string, never>>>('/api/auth/send-email', params)
 }
 
 /** 注册 */

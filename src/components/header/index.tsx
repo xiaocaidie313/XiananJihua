@@ -6,17 +6,18 @@ import './index.css'
 
 interface HeaderProps {
   handleBack?: () => void
+  canToggleSidebar?: boolean
   isSidebarCollapsed?: boolean
   onToggleSidebar?: () => void
 }
 
-function Header({ handleBack, isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) {
+function Header({ handleBack, canToggleSidebar = true, isSidebarCollapsed = false, onToggleSidebar }: HeaderProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
-  const topLevelPaths = new Set(['/home', '/shortvideo', '/article', '/cartoon', '/podcast', '/warn', '/chat', '/me', '/login'])
+  const topLevelPaths = new Set(['/home', '/shortvideo', '/vedios', '/article', '/cartoon', '/podcast', '/warn', '/chat', '/me', '/login'])
   const showBackButton = !topLevelPaths.has(location.pathname)
-  const compactSearch = location.pathname.startsWith('/news/') || location.pathname.startsWith('/shortvideo/details/')
+  const compactSearch = location.pathname.startsWith('/news/') || location.pathname.startsWith('/vedios/')
 
   const handleSearch = () => {
     if (searchValue.trim()) {
@@ -35,8 +36,10 @@ function Header({ handleBack, isSidebarCollapsed = false, onToggleSidebar }: Hea
       <div className="header-inner">
         <div className="header-left">
           <button
-            className={`header-icon-button${isSidebarCollapsed ? ' is-active' : ''}`}
+            className={`header-icon-button${canToggleSidebar && isSidebarCollapsed ? ' is-active' : ''}`}
+            disabled={!canToggleSidebar}
             onClick={onToggleSidebar}
+            style={!canToggleSidebar ? { opacity: 0.45, cursor: 'default' } : undefined}
             type="button"
           >
             <MenuOutlined />

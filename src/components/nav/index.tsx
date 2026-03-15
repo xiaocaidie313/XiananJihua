@@ -13,7 +13,7 @@ function Nav() {
     },
     {
       name: '文章',
-      description: '沿用条漫频道结构，把原来的新闻统一收进文章频道',
+      description: '文章频道',
       path: '/article',
       icon: <ReadOutlined style={{ fontSize: '22px', color: '#5b4bdb' }} />,
     },

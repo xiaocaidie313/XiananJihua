@@ -29,7 +29,7 @@ function ArticlePage() {
         const response = await getNewArticles({ page_size: 12, cursor: 0 })
         const data = unwrapResponse(response)
         if (active) {
-          setArticles(data.articles || [])
+          setArticles(data?.articles ?? [])
           setError('')
         }
       } catch (loadError) {
@@ -78,12 +78,7 @@ function ArticlePage() {
     <div className="page-shell cartoon-page">
       <section className="page-hero">
         <span className="soft-tag">文章频道</span>
-        <h1 className="page-title" style={{ marginTop: '16px' }}>
-          以前的新闻内容，现在统一收进文章频道
-        </h1>
-        <p className="page-subtitle">
-          页面结构沿用条漫频道的桌面端布局，但内容源优先改为真实文章接口，保留原来的新闻阅读入口和详情页链路。
-        </p>
+
       </section>
 
       <div className="cartoon-layout">
@@ -91,7 +86,6 @@ function ArticlePage() {
           <div className="section-head">
             <div>
               <div className="section-title">精选文章</div>
-              <div className="section-meta">使用和条漫相同的频道头图区承载重点内容</div>
             </div>
           </div>
 
@@ -123,18 +117,6 @@ function ArticlePage() {
           </div>
           <div className="info-stack">
             <div style={{ padding: '14px 16px', borderRadius: '18px', background: '#f8fafc' }}>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>结构沿用条漫频道</div>
-              <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
-                文章频道保留两栏桌面布局，让资讯阅读更适合网页浏览。
-              </div>
-            </div>
-            <div style={{ padding: '14px 16px', borderRadius: '18px', background: '#f8fafc' }}>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>优先读取真实接口</div>
-              <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
-                当前优先使用文章接口，接口异常时自动回退到原来的新闻内容，避免页面空白。
-              </div>
-            </div>
-            <div style={{ padding: '14px 16px', borderRadius: '18px', background: '#f8fafc' }}>
               <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>本次已接入的内容量</div>
               <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
                 {loading ? '正在拉取文章内容...' : `当前展示 ${articleItems.length} 条文章`}
@@ -146,10 +128,9 @@ function ArticlePage() {
 
       <section className="surface-card" style={{ padding: '24px' }}>
         <div className="section-head">
-          <div>
-            <div className="section-title">最新文章</div>
-            <div className="section-meta">频道列表点击后继续进入原有详情页路由</div>
-          </div>
+            <div>
+                <div className="section-title">最新文章</div>
+              </div>
           <span className="soft-tag">{articleItems.length} 篇</span>
         </div>
 
@@ -168,10 +149,9 @@ function ArticlePage() {
 
       <section className="surface-card" style={{ padding: '24px' }}>
         <div className="section-head">
-          <div>
-            <div className="section-title">编辑精选</div>
-            <div className="section-meta">保留网页端卡片式推荐方式</div>
-          </div>
+            <div>
+                <div className="section-title">编辑精选</div>
+              </div>
         </div>
         <div className="grid-auto-cards">
           {featuredItems.map((item) => (

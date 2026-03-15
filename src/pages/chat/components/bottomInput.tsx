@@ -23,6 +23,7 @@ function BottomInput({
 
   return (
     <div
+      className="chat-input-bar"
       style={{
         width: '100%',
         display: 'flex',
@@ -34,10 +35,11 @@ function BottomInput({
       }}
     >
       <div
-        className="input-wrapper"
+        className="input-wrapper chat-input-inner"
         style={{
           display: 'flex',
           width: '100%',
+          maxWidth: '760px',
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor: '#f8fafc',

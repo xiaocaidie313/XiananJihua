@@ -113,7 +113,7 @@ function ShortVideo() {
   }
 
   const handleShare = async (videoId: number) => {
-    const shareUrl = `${window.location.origin}/shortvideo/details/${videoId}`
+    const shareUrl = `${window.location.origin}/vedios/${videoId}`
 
     try {
       await navigator.clipboard.writeText(shareUrl)

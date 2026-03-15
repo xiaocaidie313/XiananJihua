@@ -1,15 +1,10 @@
-import { useEffect, useState } from 'react'
-import { getOrCreateSession, getQaInfo, streamQa } from '@/api/qa'
-import { getConversationList } from '@/api/qa'
-import {
-  getChatSessionId,
-  getCurrentUserId,
-  getErrorMessage,
-  setChatSession,
-  unwrapResponse,
-} from '@/utils/appState'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { getOrCreateSession, getQaInfo, streamQaStream, getConversationList } from '@/api/qa'
+import type { SessionType } from '@/constants/qa'
+import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
 import Dialog from './components/dialog'
 import BottomInput from './components/bottomInput'
+import './index.css'
 
 export interface Message {
   id: number
@@ -28,11 +23,33 @@ function Chat() {
   const [feedback, setFeedback] = useState('')
   const currentUserId = getCurrentUserId()
   const isLoggedIn = Boolean(currentUserId)
+  const messagesScrollRef = useRef<HTMLDivElement>(null)
 
   const formatTime = (value: number | string | undefined) => {
     const date = value ? new Date(Number(value)) : new Date()
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
   }
+
+  const ensureSessionId = useCallback(async (fallbackFeedback: string) => {
+    if (sessionId) {
+      return sessionId
+    }
+    try {
+      // 获取或创建会话  获得 session_id 
+      const sessionResponse = await getOrCreateSession()
+      const sessionData = unwrapResponse<SessionType | null>(sessionResponse)
+
+      if (!sessionData?.session?.session_id) {
+        throw new Error(fallbackFeedback)
+      }
+
+      setSessionId(sessionData.session.session_id)
+      return sessionData.session.session_id
+    } catch {
+      throw new Error(fallbackFeedback)
+    }
+
+  }, [sessionId])
 
   useEffect(() => {
     let active = true
@@ -53,48 +70,47 @@ function Chat() {
 
       try {
         setLoadingMessages(true)
-        let currentSessionId = getChatSessionId()
+        // 获取会话列表
+        const sessionListResponse = await getConversationList({
+          page_size: 20,
+          cursor: '',
+          user_id: currentUserId,
+        })
+        const sessionListData = unwrapResponse(sessionListResponse)
+        const sessions = sessionListData?.sessions ?? []
 
-        if (!currentSessionId) {
-          const sessionResponse = await getOrCreateSession()
-          const sessionData = unwrapResponse(sessionResponse)
-          setChatSession(sessionData)
-          currentSessionId = sessionData.session.session_id
+        let currentSessionId: number
+        if (sessions.length > 0) {
+          currentSessionId = sessions[0].session_id
+        } else {
+          currentSessionId = await ensureSessionId('会话创建失败，请稍后重试')
         }
 
         if (!active) {
           return
         }
-
+        // 设置当前会话id
         setSessionId(currentSessionId)
 
-        const [messageResponse, sessionListResponse] = await Promise.all([
-          getQaInfo({
-            session_id: currentSessionId,
-            page_size: 50,
-            cursor: '',
-            user_id: currentUserId,
-          }),
-          getConversationList({
-            page_size: 20,
-            cursor: '',
-            user_id: currentUserId,
-          }),
-        ])
-
+        const messageResponse = await getQaInfo({
+          session_id: currentSessionId,
+          page_size: 50,
+          cursor: '',
+          user_id: currentUserId,
+        })
         const messageData = unwrapResponse(messageResponse)
-        const sessionListData = unwrapResponse(sessionListResponse)
 
         if (!active) {
           return
         }
 
-        setSessionCount((sessionListData.sessions || []).length)
+        setSessionCount(sessions.length)
+        const rawMessages = messageData?.messages ?? []
         setMessages(
-          (messageData.messages || []).map((item, index) => ({
+          rawMessages.map((item, index) => ({
             id: index + 1,
             message: item.content,
-            role: item.user_id === currentUserId ? 'user' : 'assistant',
+            role: (index % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
             time: formatTime(item.created_at),
           })),
         )
@@ -116,7 +132,16 @@ function Chat() {
     return () => {
       active = false
     }
-  }, [currentUserId, isLoggedIn])
+  }, [currentUserId, ensureSessionId, isLoggedIn])
+
+  useEffect(() => {
+    if (!loadingMessages && messages.length > 0) {
+      requestAnimationFrame(() => {
+        const el = messagesScrollRef.current
+        if (el) el.scrollTop = el.scrollHeight
+      })
+    }
+  }, [loadingMessages, messages])
 
   const handleSend = async (value: string) => {
     if (!value.trim() || !isLoggedIn) {
@@ -132,52 +157,50 @@ function Chat() {
       time: formatTime(now),
     }
 
-    setMessages((prev) => [...prev, userMessage])
+    const assistantMessageId = now + 1
+    setMessages((prev) => [
+      ...prev,
+      userMessage,
+      {
+        id: assistantMessageId,
+        message: '',
+        role: 'assistant',
+        time: formatTime(Date.now()),
+      },
+    ])
     setInputValue('')
     setSending(true)
 
     try {
-      let currentSessionId = sessionId
+      const currentSessionId = await ensureSessionId('当前无法创建对话会话，请稍后再试')
 
-      if (!currentSessionId) {
-        const sessionResponse = await getOrCreateSession()
-        const sessionData = unwrapResponse(sessionResponse)
-        setChatSession(sessionData)
-        currentSessionId = sessionData.session.session_id
-        setSessionId(currentSessionId)
-      }
-
-      const response = await streamQa({
-        content: value,
-        session_id: currentSessionId,
-        client_message_id: clientMessageId,
-      })
-      const data = unwrapResponse<any>(response)
-      const assistantText =
-        typeof data === 'string'
-          ? data
-          : data?.content || data?.answer || data?.message?.content || '收到你的消息啦'
-
-      setMessages((prev) => [
-        ...prev,
+      let accumulatedText = ''
+      await streamQaStream(
         {
-          id: now + 1,
-          message: assistantText,
-          role: 'assistant',
-          time: formatTime(Date.now()),
+          content: value,
+          session_id: currentSessionId,
+          client_message_id: clientMessageId,
         },
-      ])
-      setFeedback('')
+        (delta, finished) => {
+          accumulatedText += delta
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId ? { ...msg, message: accumulatedText } : msg,
+            ),
+          )
+          if (finished) {
+            setFeedback('')
+          }
+        },
+      )
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: now + 1,
-          message: '消息发送失败，请稍后再试',
-          role: 'assistant',
-          time: formatTime(Date.now()),
-        },
-      ])
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId
+            ? { ...msg, message: '消息发送失败，请稍后再试' }
+            : msg,
+        ),
+      )
       setFeedback(getErrorMessage(error, '消息发送失败，请稍后再试'))
     } finally {
       setSending(false)
@@ -185,70 +208,31 @@ function Chat() {
   }
 
   return (
-    <div className="page-shell">
-      <section className="page-hero">
-        <span className="soft-tag">AI 对话</span>
-        <h1 className="page-title" style={{ marginTop: '16px' }}>网页端对话工作台</h1>
-        <p className="page-subtitle">现在会优先接入真实会话接口、历史消息接口和发送接口，未登录时会显示登录提示。</p>
-      </section>
-
-      <div className="page-content-grid">
-        <aside className="page-side-column">
-          <div className="surface-card" style={{ padding: '22px' }}>
-            <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>当前会话</div>
-            <div className="info-stack">
-              <div className="info-row"><strong>登录状态</strong><span>{isLoggedIn ? '已登录' : '未登录'}</span></div>
-              <div className="info-row"><strong>会话数</strong><span>{sessionCount}</span></div>
-              <div className="info-row"><strong>消息数</strong><span>{messages.length}</span></div>
-            </div>
-          </div>
-
-          <div className="surface-card" style={{ padding: '22px' }}>
-            <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>说明</div>
-            <div style={{ fontSize: '14px', lineHeight: 1.8, color: '#64748b' }}>
+    <div className="chat-page">
+      <section className="chat-shell">
+        <div className="chat-shell__topbar">
+          <div>
+            <div className="chat-shell__title">小安对话</div>
+            <div className="chat-shell__subtitle">
               {isLoggedIn
-                ? '当前页面已对接真实 QA 接口，会自动恢复最近会话并继续对话。'
-                : '请先登录，系统才会为你创建并读取个人会话。'}
+                ? '小安会根据你的问题，给出相应的回答。'
+                : '请先登录，登录后即可恢复你的历史会话并继续聊天。'}
             </div>
           </div>
-        </aside>
-
-        <section
-          className="surface-card"
-          style={{
-            minHeight: '720px',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ padding: '24px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div className="section-title">小安对话</div>
-              <div className="section-meta">真实会话 / 真实消息 / 真实发送</div>
-            </div>
+          <div className="chat-shell__meta">
+            <span className="soft-tag">{isLoggedIn ? '已登录' : '未登录'}</span>
             <span className="soft-tag">{messages.length} 条消息</span>
+            <span className="soft-tag">{sessionCount} 个会话</span>
           </div>
+        </div>
 
-          {feedback && (
-            <div style={{ margin: '16px 24px 0', fontSize: '13px', color: '#b45309' }}>
-              {feedback}
-            </div>
-          )}
-
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '20px 0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-            }}
-          >
+        {feedback && <div className="chat-shell__feedback">{feedback}</div>}
+ 
+        <div ref={messagesScrollRef} className="chat-shell__messages">
+          <div className="chat-shell__messages-inner">
             {loadingMessages ? (
-              <div style={{ padding: '0 24px', color: '#94a3b8' }}>消息加载中...</div>
-            ) : (
+              <div className="chat-shell__placeholder">消息加载中...</div>
+            ) : messages.length ? (
               messages.map((msg) => (
                 <Dialog
                   key={msg.id}
@@ -257,18 +241,25 @@ function Chat() {
                   time={msg.time}
                 />
               ))
+            ) : (
+              <div className="chat-shell__empty">
+                <div className="chat-shell__empty-title">开始和小安聊一聊</div>
+                <div className="chat-shell__empty-desc">
+                  小安会根据你的问题，给出相应的回答。
+                </div>
+              </div>
             )}
           </div>
+        </div>
 
-          <BottomInput
-            disabled={!isLoggedIn}
-            inputValue={inputValue}
-            loading={sending}
-            onSend={(value) => void handleSend(value)}
-            setInputValue={setInputValue}
-          />
-        </section>
-      </div>
+        <BottomInput
+          disabled={!isLoggedIn}
+          inputValue={inputValue}
+          loading={sending}
+          onSend={(value) => void handleSend(value)}
+          setInputValue={setInputValue}
+        />
+      </section>
     </div>
   )
 }
