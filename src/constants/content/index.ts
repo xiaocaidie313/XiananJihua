@@ -1,5 +1,6 @@
 import type { Tag } from '../../api/content/types'
 
+
 /** 内容类型 */
 export const ContentTypeId = {
   video_id: 'video_id',
@@ -12,6 +13,11 @@ export const ContentTypeId = {
 export interface ResponseContent {
   [key: string]: number
   relation_status: number
+}
+export interface ResponseComment {
+  comment_id: number
+  relation_status: number
+
 }
 
 export interface ArticleSummary {

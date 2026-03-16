@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { getNewVideosList, getVideoContent } from '@/api/content'
 import type { VideoItem } from '@/api/content/types'
 
@@ -8,23 +8,28 @@ export function useVideos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let active = true
-    getNewVideosList({ page_size: 50, cursor: 0 })
+  const refetch = useCallback(() => {
+    return getNewVideosList({ page_size: 50, cursor: 0 })
       .then((res: { data?: { videos?: VideoItem[] } }) => {
         const videos = res?.data?.videos ?? []
-        if (active) setVedios(videos)
+        setVedios(videos)
       })
-      .catch((e: { message?: string }) => {
-        if (active) setError(e?.message ?? '获取视频失败')
+      .catch((e) => {
+        console.log(e)
+        setError(e?.message ?? '获取视频失败')
       })
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    refetch()
       .finally(() => {
         if (active) setLoading(false)
       })
     return () => { active = false }
-  }, [])
+  }, [refetch])
 
-  return { vedios, loading, error }
+  return { vedios, loading, error, refetch }
 }
 
 /** 从接口获取单个视频详情 */
@@ -45,7 +50,8 @@ export function useVideo(id: number | null) {
         const v = res?.data?.video
         if (active && v) setVedio(v)
       })
-      .catch((e: { message?: string }) => {
+      .catch((e) => {
+        console.log(e)
         if (active) setError(e?.message ?? '获取视频失败')
       })
       .finally(() => {

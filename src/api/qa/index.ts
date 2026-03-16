@@ -22,32 +22,33 @@ export const streamQaStream = async (
   params: StreamQaParams,
   onChunk: (delta: string, finished: boolean) => void,
 ): Promise<void> => {
-  const token = localStorage.getItem('token')
-  const res = await fetch(`${BASE_URL}/api/qa/sse/ask`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ?{ Authorization: `${token}` } : {}),
-    },
-    body: JSON.stringify(params),
-  })
-
-  if (!res.ok) {
-    throw new Error(`请求失败: ${res.status}`)
-  }
-  
-  // 读取响应流 getReader()
-  // fetch 专门的 处理流式响应的 方法
-  const reader = res.body?.getReader()
-  if (!reader) {
-    throw new Error('无法读取响应流')
-  }
-
-  const decoder = new TextDecoder()
-  let buffer = ''
-
   try {
-    while (true) {
+    const token = localStorage.getItem('token')
+    const res = await fetch(`${BASE_URL}/api/qa/sse/ask`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ?{ Authorization: `${token}` } : {}),
+      },
+      body: JSON.stringify(params),
+    })
+
+    if (!res.ok) {
+      throw new Error(`请求失败: ${res.status}`)
+    }
+
+    // 读取响应流 getReader()
+    // fetch 专门的 处理流式响应的 方法
+    const reader = res.body?.getReader()
+    if (!reader) {
+      throw new Error('无法读取响应流')
+    }
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    try {
+      while (true) {
       const { done, value } = await reader.read()
       if (done) break
       // console.log('value', value)
@@ -66,14 +67,18 @@ export const streamQaStream = async (
             const delta = data.delta ?? ''
             const finished = data.finished ?? false
             onChunk(delta, finished)
-          } catch {
-            // 忽略解析失败的行
+          } catch (err) {
+            console.log(err)
           }
         }
       }
     }
-  } finally {
-    reader.releaseLock()
+    } finally {
+      reader.releaseLock()
+    }
+  } catch (err) {
+    console.log(err)
+    throw err
   }
 }
 

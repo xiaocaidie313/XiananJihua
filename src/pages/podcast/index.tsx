@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import {
-  LikeOutlined,
-  MessageOutlined,
-  MoreOutlined,
   PlayCircleFilled,
   PauseCircleFilled,
   UndoOutlined,

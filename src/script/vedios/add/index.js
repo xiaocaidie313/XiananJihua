@@ -7,18 +7,23 @@ const BASE_URL = 'https://xiaoanjihua.cc'
 const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX3JvbGUiOiJzdXBlcmFkbWluIiwidXNlcl9zdGF0dXMiOjEsImV4cCI6MTc3MzY1MDM1MX0.E-KkHB-kouzY9gw1rQ_ALxF7c6Z6DOvbjTA8yVBCvHc'
 
 async function addVideo(params) {
-  const res = await fetch(`${BASE_URL}/api/content/add-video`, {
-    method: 'POST',
-    headers: { 
+  try {
+    const res = await fetch(`${BASE_URL}/api/content/add-video`, {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `${token}`
-     },
-    body: JSON.stringify(params),
-  })
-  const data = await res.json()
-  const ok = res.ok && (data.code === 0 || data.code === 200 || data.message?.includes('成功'))
-  if (!ok) throw new Error(data.message || '请求失败')
-  return data
+      },
+      body: JSON.stringify(params),
+    })
+    const data = await res.json()
+    const ok = res.ok && (data.code === 0 || data.code === 200 || data.message?.includes('成功'))
+    if (!ok) throw new Error(data.message || '请求失败')
+    return data
+  } catch (err) {
+    console.log(err)
+    throw err
+  }
 }
 
 const base_pic = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/'

@@ -35,6 +35,7 @@ function News() {
           setError('')
         }
       } catch (loadError) {
+        console.log(loadError)
         if (active) {
           setError(getErrorMessage(loadError, '文章详情接口加载失败，已回退为原有新闻内容'))
         }
@@ -90,6 +91,7 @@ function News() {
       }
       setActionFeedback('')
     } catch (e) {
+      console.log(e)
       setActionFeedback(getErrorMessage(e, '操作失败，请稍后重试'))
     }
   }, [contentId, isLiked, userId])
@@ -111,6 +113,7 @@ function News() {
       }
       setActionFeedback('')
     } catch (e) {
+      console.log(e)
       setActionFeedback(getErrorMessage(e, '操作失败，请稍后重试'))
     }
   }, [contentId, isCollected, userId])

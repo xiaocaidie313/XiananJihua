@@ -61,6 +61,7 @@ function Me() {
       localStorage.setItem('user', JSON.stringify(nextUser))
       setFeedback('')
     } catch (error) {
+      console.log(error)
       setUser(cachedUser)
       setFeedback(getErrorMessage(error, cachedUser ? '用户详情接口加载失败，当前先展示本地登录信息' : '用户信息加载失败，请稍后重试'))
     } finally {

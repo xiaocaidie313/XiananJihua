@@ -4,7 +4,6 @@ import type { SessionInfo, SessionType } from '@/constants/qa'
 import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
 import Dialog from './components/dialog'
 import BottomInput from './components/bottomInput'
-import History from './components/history'
 import './index.css'
 
 export interface Message {
@@ -20,7 +19,7 @@ function Chat() {
   const [sessionId, setSessionId] = useState(0)
   const [loadingMessages, setLoadingMessages] = useState(true)
   const [sending, setSending] = useState(false)
-  const [sessions, setSessions] = useState<SessionInfo[]>([])
+  const [, setSessions] = useState<SessionInfo[]>([])
   const [feedback, setFeedback] = useState('')
   const currentUserId = getCurrentUserId()
   const isLoggedIn = Boolean(currentUserId)
@@ -50,7 +49,8 @@ function Chat() {
         prev.map((s) => (s.session_id === placeholderId ? realSession : s)),
       )
       return realSession.session_id
-    } catch {
+    } catch (err) {
+      console.log(err)
       throw new Error(fallbackFeedback)
     }
   }, [sessionId])
@@ -120,6 +120,7 @@ function Chat() {
         )
         setFeedback('')
       } catch (error) {
+        console.log(error)
         if (active) {
           setFeedback(getErrorMessage(error, '聊天记录加载失败，请稍后再试'))
           setMessages([])
@@ -147,79 +148,16 @@ function Chat() {
     }
   }, [loadingMessages, messages])
 
-  const loadSessionMessages = useCallback(async (targetSessionId: number) => {
-    if (!currentUserId) return
-    try {
-      setLoadingMessages(true)
-      const messageResponse = await getQaInfo({
-        session_id: targetSessionId,
-        page_size: 50,
-        cursor: '',
-        user_id: currentUserId,
-      })
-      const messageData = unwrapResponse(messageResponse)
-      const rawMessages = messageData?.messages ?? []
-      setMessages(
-        rawMessages.map((item, index) => ({
-          id: index + 1,
-          message: item.content,
-          role: (index % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
-          time: formatTime(item.created_at),
-        })),
-      )
-      setSessionId(targetSessionId)
-      setFeedback('')
-    } catch (error) {
-      setFeedback(getErrorMessage(error, '加载会话失败，请稍后再试'))
-      setMessages([])
-    } finally {
-      setLoadingMessages(false)
-    }
-  }, [currentUserId])
-
   const refreshSessions = useCallback(async () => {
     if (!currentUserId) return
     try {
       const res = await getConversationList({ page_size: 20, cursor: '', user_id: currentUserId })
       const data = unwrapResponse(res)
       setSessions(data?.sessions ?? [])
-    } catch {
-      // 静默失败
+    } catch (err) {
+      console.log(err)
     }
   }, [currentUserId])
-
-  const handleNewChat = useCallback(async () => {
-    if (!isLoggedIn) return
-    const placeholderId = -Date.now()
-    const placeholder: SessionInfo = {
-      session_id: placeholderId,
-      title: '新对话',
-      user_id: currentUserId,
-      message_count: 0,
-      has_message: 0,
-      session_status: 0,
-      is_pinned: 0,
-      qpinned_at: 0,
-      last_message_at: 0,
-      relation_status: 0,
-      created_at: Date.now(),
-      updated_at: Date.now(),
-    }
-    setSessionId(placeholderId)
-    setSessions((prev) => [placeholder, ...prev])
-    setMessages([])
-    setFeedback('')
-  }, [isLoggedIn, currentUserId])
-
-  const handleSelectSession = useCallback((targetSessionId: number) => {
-    if (targetSessionId === sessionId) return
-    if (targetSessionId < 0) {
-      setMessages([])
-      setSessionId(targetSessionId)
-      return
-    }
-    void loadSessionMessages(targetSessionId)
-  }, [sessionId, loadSessionMessages])
 
   const handleSend = async (value: string) => {
     if (!value.trim() || !isLoggedIn) {
@@ -274,6 +212,7 @@ function Chat() {
         },
       )
     } catch (error) {
+      console.log(error)
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId

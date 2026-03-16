@@ -31,6 +31,7 @@ function Home() {
           setArticleError('')
         }
       } catch (error) {
+        console.log(error)
         if (active) {
           setArticleError(getErrorMessage(error, '文章接口加载失败，已展示本地内容'))
         }

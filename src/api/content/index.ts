@@ -8,6 +8,7 @@ import type {
   Podcast,
   PodcastList,
   ResponseContent,
+  ResponseComment,
   RootComments,
   SubComments,
   Video,
@@ -150,7 +151,7 @@ export const deleteComic = (id: number) => {
 
 /** 添加评论 */
 export const addComment = (params: AddCommentParams) => {
-  return instance.post<CommonResponse<ResponseContent>>('/api/content/add-comment', params, { header: authHeader() })
+  return instance.post<CommonResponse<ResponseComment>>('/api/content/add-comment', params, { header: authHeader() })
 }
 
 /** 获取根评论 */

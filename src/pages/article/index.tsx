@@ -33,6 +33,7 @@ function ArticlePage() {
           setError('')
         }
       } catch (loadError) {
+        console.log(loadError)
         if (active) {
           setError(getErrorMessage(loadError, '文章接口暂时不可用，当前已回退为原有新闻内容'))
         }

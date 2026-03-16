@@ -76,6 +76,7 @@ function LoginPage() {
       setFeedback('登录成功，正在跳转个人中心')
       window.setTimeout(() => navigate('/me', { replace: true, state: { justLoggedIn: true } }), 500)
     } catch (error) {
+      console.log(error)
       setFeedback(getErrorMessage(error, '登录失败，请稍后再试'))
     } finally {
       setLoading(false)
@@ -127,6 +128,7 @@ function LoginPage() {
       setMode('login')
       await handleLogin(registerForm.email.trim(), registerForm.password.trim())
     } catch (error) {
+      console.log(error)
       setFeedback(getErrorMessage(error, '注册失败，请检查验证码或邀请码'))
     } finally {
       setLoading(false)
