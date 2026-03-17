@@ -14,7 +14,7 @@ import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/co
 import { ContentType } from '@/pages/shortvedio';
 import type { RootComment, RootComments } from '@/constants/content';
 import type { ResponseComment } from '@/constants/content';
-import { getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState';
+import { getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState';
 import './index.css';
 
 function Vedios() {
@@ -34,7 +34,7 @@ function Vedios() {
     const recommendVedios = allVedios.filter(item => item.video_id !== videoId).slice(0, 5);
 
     const formatCommentTime = (ts: number) => {
-        const ms = ts < 1e12 ? ts * 1000 : ts;
+        const ms = timestampToMs(ts);
         const d = new Date(ms);
         const now = Date.now();
         const diff = now - ms;

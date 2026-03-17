@@ -1,12 +1,12 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Avatar } from 'antd'
-import { CommentOutlined, LikeOutlined, ShareAltOutlined, UserOutlined } from '@ant-design/icons'
-import { collectContent, getArticleInfo, likeContent, uncollectContent, unlikeContent } from '@/api/content'
+import { CommentOutlined, HeartFilled, HeartOutlined, ShareAltOutlined, UserOutlined } from '@ant-design/icons'
+import { collectContent, getArticleInfo, likeContent, uncollectContent, unlikeContent, getRootComment, addComment } from '@/api/content'
 import { getNewsById } from '@/features/news/newsSlice'
 import { useAppSelector } from '@/store/hooks'
-import type { ArticleInfo } from '@/constants/content'
-import { ContentTypeId } from '@/constants/content'
-import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
+import type { ArticleInfo, ResponseComment, RootComment, RootComments } from '@/constants/content'
+import { ContentType } from '@/pages/shortvedio'
+import { getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
 import { useParams } from 'react-router-dom'
 
 /** 独立成行的图片 URL 正则 */
@@ -54,6 +54,22 @@ function News() {
   const [collectCount, setCollectCount] = useState<number | null>(null)
   const [isLiked, setIsLiked] = useState(false)
   const [isCollected, setIsCollected] = useState(false)
+  const [comments, setComments] = useState<RootComment[]>([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentInput, setCommentInput] = useState('')
+  const [publishLoading, setPublishLoading] = useState(false)
+  const commentSectionRef = useRef<HTMLDivElement>(null)
+
+  const formatCommentTime = (ts: number) => {
+    const ms = timestampToMs(ts)
+    const now = Date.now()
+    const diff = now - ms
+    if (diff < 60000) return '刚刚'
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+    if (diff < 2592000000) return `${Math.floor(diff / 86400000)}天前`
+    return new Date(ms).toLocaleDateString('zh-CN')
+  }
 
   useEffect(() => {
     let active = true
@@ -114,11 +130,11 @@ function News() {
     }
     try {
       if (isLiked) {
-        await unlikeContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        await unlikeContent({ content_id: contentId, content_type: ContentType.article })
         setLikeCount((c) => (c ?? 0) - 1)
         setIsLiked(false)
       } else {
-        await likeContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        await likeContent({ content_id: contentId, content_type: ContentType.article })
         setLikeCount((c) => (c ?? 0) + 1)
         setIsLiked(true)
       }
@@ -136,11 +152,11 @@ function News() {
     }
     try {
       if (isCollected) {
-        await uncollectContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        await uncollectContent({ content_id: contentId, content_type: ContentType.article })
         setCollectCount((c) => (c ?? 0) - 1)
         setIsCollected(false)
       } else {
-        await collectContent({ content_id: contentId, content_type: ContentTypeId.article_id })
+        await collectContent({ content_id: contentId, content_type: ContentType.article })
         setCollectCount((c) => (c ?? 0) + 1)
         setIsCollected(true)
       }
@@ -151,13 +167,84 @@ function News() {
     }
   }, [contentId, isCollected, userId])
 
+  const fetchComments = useCallback(async () => {
+    if (!contentId) return
+    setCommentsLoading(true)
+    try {
+      const res = await getRootComment({
+        content_type: ContentType.article,
+        content_id: contentId,
+        page: 1,
+        page_size: 20,
+      })
+      const data = unwrapResponse(res) as RootComments | RootComment[]
+      const list = Array.isArray(data) ? data : (data as RootComments)?.comments ?? []
+      setComments(list)
+    } catch (err) {
+      console.log(err)
+      setComments([])
+    } finally {
+      setCommentsLoading(false)
+    }
+  }, [contentId])
+
+  useEffect(() => {
+    if (contentId) void fetchComments()
+  }, [contentId, fetchComments])
+
+  const handlePublishComment = useCallback(async () => {
+    if (!contentId || !commentInput.trim()) return
+    if (!userId) {
+      setActionFeedback('请先登录后再评论')
+      return
+    }
+    const user = getStoredUser()
+    const text = commentInput.trim()
+    setPublishLoading(true)
+    setActionFeedback('')
+    try {
+      const res = await addComment({
+        content_id: contentId,
+        content_type: ContentType.article,
+        comment_text: text,
+        parent_id: 0,
+        reply_comment_id: 0,
+        reply_user_id: 0,
+        status: 0,
+        user_name: user?.name || '',
+        avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+      })
+      setCommentInput('')
+      const data = unwrapResponse(res) as ResponseComment
+      const newComment: RootComment = {
+        id: data.comment_id,
+        type: 'article',
+        target_id: contentId,
+        user_id: userId,
+        nickname: user?.name ?? '我',
+        avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+        ip_location: '',
+        content: text,
+        sub_comment_count: 0,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      }
+      setComments((prev) => [newComment, ...prev])
+    } catch (e) {
+      console.log(e)
+      setActionFeedback(getErrorMessage(e, '发布失败，请稍后重试'))
+    } finally {
+      setPublishLoading(false)
+    }
+  }, [contentId, commentInput, userId])
+
   const handleComment = useCallback(() => {
-    setActionFeedback('评论功能开发中，敬请期待')
+    commentSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
   const contentState = useMemo(() => {
     if (article) {
-      const publishedAt = article.published_at ? new Date(article.published_at) : null
+      const publishedAt = article.published_at ? new Date(timestampToMs(article.published_at)) : null
       return {
         title: article.name,
         author: article.author,
@@ -205,33 +292,94 @@ function News() {
       </section>
 
       <div className="page-content-grid">
-        <article className="surface-card" style={{ padding: '32px', minWidth: 0 }}>
-          {error && (
-            <div style={{ marginBottom: '20px', fontSize: '13px', color: '#b45309' }}>
-              {error}
+        <div className="page-main-column">
+          <article className="surface-card" style={{ padding: '32px', minWidth: 0 }}>
+            {error && (
+              <div style={{ marginBottom: '20px', fontSize: '13px', color: '#b45309' }}>
+                {error}
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+              <Avatar size={56} icon={<UserOutlined />} style={{ backgroundColor: '#8b5cf6' }} />
+              <div>
+                <div style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>{contentState.author}</div>
+                <div style={{ marginTop: '6px', fontSize: '13px', color: '#94a3b8' }}>青少年安全与陪伴专栏</div>
+              </div>
             </div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-            <Avatar size={56} icon={<UserOutlined />} style={{ backgroundColor: '#8b5cf6' }} />
-            <div>
-              <div style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>{contentState.author}</div>
-              <div style={{ marginTop: '6px', fontSize: '13px', color: '#94a3b8' }}>青少年安全与陪伴专栏</div>
-            </div>
-          </div>
 
-          <div
-            style={{
-              fontSize: '17px',
-              lineHeight: 2,
-              color: '#334155',
-              textAlign: 'justify',
-              maxWidth: '780px',
-              whiteSpace: 'pre-wrap',
-            }}
-          >
-            {renderArticleContent(contentState.content)}
+            <div
+              style={{
+                fontSize: '17px',
+                lineHeight: 2,
+                color: '#334155',
+                textAlign: 'justify',
+                maxWidth: '780px',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {renderArticleContent(contentState.content)}
+            </div>
+          </article>
+
+          <div ref={commentSectionRef} className="surface-card" style={{ padding: '20px', marginTop: '0' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+              {Math.max(comments.length, contentState.commentCount ?? 0)} 条评论
+            </div>
+            {actionFeedback ? <div style={{ marginBottom: '12px', fontSize: '13px', color: '#ff4d67' }}>{actionFeedback}</div> : null}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {commentsLoading ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#909090' }}>加载中...</div>
+              ) : comments.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#909090' }}>暂无评论，快来抢沙发吧</div>
+              ) : (
+                comments.map((item) => {
+                  const name = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户'
+                  const text = (item as RootComment & { comment_text?: string }).content ?? (item as RootComment & { comment_text?: string }).comment_text ?? ''
+                  const ts = (item as RootComment & { create_time?: number }).created_at ?? (item as RootComment & { create_time?: number }).create_time ?? 0
+                  return (
+                    <div key={item.id} style={{ display: 'flex', gap: '12px' }}>
+                      <Avatar src={item.avatar} icon={!item.avatar ? <UserOutlined /> : undefined} size={32} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '13px', color: '#606060', marginBottom: '4px' }}>
+                          {name} · {formatCommentTime(ts)}
+                        </div>
+                        <div style={{ fontSize: '15px', color: '#0f0f0f', lineHeight: 1.5 }}>{text}</div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+            <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '16px', borderTop: '1px solid #ebebeb' }}>
+              <input
+                placeholder="善语结善缘，恶言伤人心"
+                value={commentInput}
+                onChange={(e) => setCommentInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && void handlePublishComment()}
+                style={{
+                  flex: 1,
+                  height: '40px',
+                  background: '#f5f5f5',
+                  borderRadius: '20px',
+                  border: 'none',
+                  padding: '0 16px',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
+              />
+              <span
+                style={{
+                  color: publishLoading || !commentInput.trim() ? '#ccc' : '#FF2C55',
+                  fontWeight: 600,
+                  cursor: publishLoading || !commentInput.trim() ? 'not-allowed' : 'pointer',
+                }}
+                onClick={() => !publishLoading && commentInput.trim() && void handlePublishComment()}
+              >
+                {publishLoading ? '发布中...' : '发布'}
+              </span>
+            </div>
           </div>
-        </article>
+        </div>
 
         <aside className="page-side-column">
           <div className="surface-card" style={{ padding: '22px' }}>
@@ -253,7 +401,7 @@ function News() {
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc' }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
               >
-                <strong><LikeOutlined style={{ color: isLiked ? '#ff2c55' : undefined }} /> 点赞</strong>
+                <strong>{isLiked ? <HeartFilled style={{ color: '#ff2c55' }} /> : <HeartOutlined />} 点赞</strong>
                 <span>{contentState.likeCount}</span>
               </button>
               <button

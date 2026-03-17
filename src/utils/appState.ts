@@ -52,3 +52,8 @@ export function clearLoginInfo() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
 }
+
+/** 将秒或毫秒时间戳统一转为毫秒（<1e12 视为秒） */
+export function timestampToMs(ts: number): number {
+  return ts < 1e12 ? ts * 1000 : ts
+}

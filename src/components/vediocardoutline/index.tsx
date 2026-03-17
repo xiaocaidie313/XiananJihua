@@ -1,12 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import type { VideoItem } from '@/api/content/types';
+import { timestampToMs } from '@/utils/appState';
 
 function VedioCardOutLine({ vedio }: { vedio: VideoItem }) {
   const { video_id, name, author, cover, published_at } = vedio;
   const navigate = useNavigate();
   const location = useLocation();
-  const d = published_at ? new Date(published_at * 1000) : new Date();
+  const d = published_at ? new Date(timestampToMs(published_at)) : new Date();
   const publishedText = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
   return (

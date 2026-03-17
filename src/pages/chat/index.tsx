@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getOrCreateSession, getQaInfo, streamQaStream, getConversationList } from '@/api/qa'
 import type { SessionInfo, SessionType } from '@/constants/qa'
-import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
+import { getCurrentUserId, getErrorMessage, timestampToMs, unwrapResponse } from '@/utils/appState'
 import Dialog from './components/dialog'
 import BottomInput from './components/bottomInput'
 import './index.css'
@@ -26,7 +26,7 @@ function Chat() {
   const messagesScrollRef = useRef<HTMLDivElement>(null)
 
   const formatTime = (value: number | string | undefined) => {
-    const date = value ? new Date(Number(value)) : new Date()
+    const date = value ? new Date(timestampToMs(Number(value))) : new Date()
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
   }
 

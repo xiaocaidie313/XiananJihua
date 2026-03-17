@@ -3,7 +3,7 @@ import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/co
 import type { ResponseComment, RootComments } from '@/constants/content'
 import type { RootComment } from '@/constants/content'
 import { useVideos } from '@/hooks/useVideos'
-import { getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState'
+import { getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './index.css'
 
@@ -42,7 +42,7 @@ function ShortVideo() {
   const currentUserId = getCurrentUserId()
 
   const formatCommentTime = (ts: number) => {
-    const ms = ts < 1e12 ? ts * 1000 : ts
+    const ms = timestampToMs(ts)
     const d = new Date(ms)
     const now = Date.now()
     const diff = now - ms
