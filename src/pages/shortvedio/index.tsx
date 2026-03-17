@@ -1,6 +1,6 @@
 import { CloseOutlined, HeartFilled, MessageFilled, ShareAltOutlined } from '@ant-design/icons'
 import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/content'
-import { ContentTypeId } from '@/constants/content'
+import type { ResponseComment, RootComments } from '@/constants/content'
 import type { RootComment } from '@/constants/content'
 import { useVideos } from '@/hooks/useVideos'
 import { getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState'
@@ -42,9 +42,10 @@ function ShortVideo() {
   const currentUserId = getCurrentUserId()
 
   const formatCommentTime = (ts: number) => {
-    const d = new Date(ts)
+    const ms = ts < 1e12 ? ts * 1000 : ts
+    const d = new Date(ms)
     const now = Date.now()
-    const diff = now - ts
+    const diff = now - ms
     if (diff < 60000) return '刚刚'
     if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
@@ -143,11 +144,11 @@ function ShortVideo() {
     const isLiked = isLikedMap[videoId]
     try {
       if (isLiked) {
-        await unlikeContent({ content_id: videoId, content_type: ContentType.article })
+        await unlikeContent({ content_id: videoId, content_type: ContentType.video })
         setLikeCountMap((prev) => ({ ...prev, [videoId]: Math.max(0, (prev[videoId] ?? 0) - 1) }))
         setIsLikedMap((prev) => ({ ...prev, [videoId]: false }))
       } else {
-        await likeContent({ content_id: videoId, content_type: ContentType.article})
+        await likeContent({ content_id: videoId, content_type: ContentType.video})
         setLikeCountMap((prev) => ({ ...prev, [videoId]: (prev[videoId] ?? 0) + 1 }))
         setIsLikedMap((prev) => ({ ...prev, [videoId]: true }))
       }
@@ -185,17 +186,19 @@ function ShortVideo() {
 
   const fetchComments = useCallback(async (videoId: number) => {
     setCommentsLoading(true)
+    console.log('我开始获取评论了')
+    console.log('我videoId是：', videoId)
     try {
-      console.log('我开始获取评论了')
       const res = await getRootComment({
-        content_type: ContentType.article,
+        content_type: ContentType.video,
         content_id: videoId,
         page: 1,
         page_size: 20,
       })
-      console.log('获取评论成功, res: ', res)
-      const data = unwrapResponse(res) as { comments?: RootComment[]; list?: RootComment[] } | null
-      const list = Array.isArray(data?.comments) ? data.comments : Array.isArray(data?.list) ? data.list : []
+      const data = unwrapResponse(res) as RootComments
+      window.console.log('我data是：', data)
+      const list = Array.isArray(data?.comments) ? data?.comments : []
+      window.console.log('我list是：', list)
       setCommentsMap((prev) => ({
         ...prev,
         [videoId]: list,
@@ -232,36 +235,37 @@ function ShortVideo() {
     setActionFeedback('')
     console.log('我开始发布了')
     console.log('评论内容是：', text)
+    console.log('activeVideoId是：', activeVideoId)
     try {
       // console.log('activeVideoId是：', activeVideoId)
       const res = await addComment({
-        content_id: 200,
-        content_type: ContentType.article,
+        content_id: activeVideoId,
+        content_type: ContentType.video,
         comment_text: text,
         parent_id: 0,
         reply_comment_id: 0,
         reply_user_id: 0,
-        status: 1,
+        status: 0,
         user_name: user?.name ?? '',
         avatar:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png' ,
       })
       setCommentInput('')
-      console.log('发布成功了, res: ', res) 
-      const data = unwrapResponse(res) as { comment?: RootComment; comment_id?: number } | null
-      const serverComment = data?.comment
-      const newComment: RootComment = serverComment ?? {
-        id: data?.comment_id ?? Date.now(),
-        type: 'video',
+      const data = unwrapResponse(res) as ResponseComment
+      const newComment: RootComment = {
+        id: data.comment_id,
+        type: ContentType.video,
         target_id: activeVideoId,
         user_id: currentUserId,
         nickname: user?.name ?? '我',
-        avatar: user?.avatar ?? '',
+        // ?? 只会判断 unll 或 undefined 我这个是空字符串 sb Ai
+        avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
         ip_location: '',
         content: text,
         sub_comment_count: 0,
         created_at: Date.now(),
         updated_at: Date.now(),
       }
+      console.log('我newComment是：', newComment)
       setCommentsMap((prev) => ({
         ...prev,
         [activeVideoId]: [newComment, ...(prev[activeVideoId] ?? [])],

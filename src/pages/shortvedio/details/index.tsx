@@ -8,16 +8,13 @@ import {
 import image from '@/assets/images/carousel/01.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useVideo, useVideos } from '@/hooks/useVideos';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/content';
+import { ContentType } from '@/pages/shortvedio';
+import type { RootComment, RootComments } from '@/constants/content';
+import type { ResponseComment } from '@/constants/content';
+import { getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState';
 import './index.css';
-
-const commentItems = [
-    { id: 1, user: '用户 1', text: '这是第 1 条评论的内容，感觉这个视频非常有意义！' },
-    { id: 2, user: '用户 2', text: '这是第 2 条评论的内容，感觉这个视频非常有意义！' },
-    { id: 3, user: '用户 3', text: '这是第 3 条评论的内容，感觉这个视频非常有意义！' },
-    { id: 4, user: '用户 4', text: '这是第 4 条评论的内容，感觉这个视频非常有意义！' },
-    { id: 5, user: '用户 5', text: '这是第 5 条评论的内容，感觉这个视频非常有意义！' },
-];
 
 function Vedios() {
     const navigate = useNavigate();
@@ -25,8 +22,141 @@ function Vedios() {
     const videoId = id ? Number(id) : null;
     const { vedio } = useVideo(videoId);
     const { vedios: allVedios } = useVideos();
-    const [like, setLike] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
+    const [comments, setComments] = useState<RootComment[]>([]);
+    const [commentsLoading, setCommentsLoading] = useState(false);
+    const [commentInput, setCommentInput] = useState('');
+    const [publishLoading, setPublishLoading] = useState(false);
+    const [actionFeedback, setActionFeedback] = useState('');
+    const currentUserId = getCurrentUserId();
     const recommendVedios = allVedios.filter(item => item.video_id !== videoId).slice(0, 5);
+
+    const formatCommentTime = (ts: number) => {
+        const ms = ts < 1e12 ? ts * 1000 : ts;
+        const d = new Date(ms);
+        const now = Date.now();
+        const diff = now - ms;
+        if (diff < 60000) return '刚刚';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
+        if (diff < 2592000000) return `${Math.floor(diff / 86400000)}天前`;
+        return d.toLocaleDateString('zh-CN');
+    };
+
+    useEffect(() => {
+        if (vedio) {
+            setLikeCount(vedio.like_count ?? 0);
+            setIsLiked(Boolean(vedio.is_liked ?? (vedio.relation_status != null && (vedio.relation_status & 1) === 1)));
+        }
+    }, [vedio]);
+
+    const fetchComments = useCallback(async () => {
+        if (!videoId) return;
+        setCommentsLoading(true);
+        try {
+            const res = await getRootComment({
+                content_type: ContentType.video,
+                content_id: videoId,
+                page: 1,
+                page_size: 20,
+            });
+            const data = unwrapResponse(res) as RootComments | RootComment[];
+            const list = Array.isArray(data) ? data : (data as RootComments)?.comments ?? [];
+            setComments(list);
+        } catch (err) {
+            console.log(err);
+            setComments([]);
+        } finally {
+            setCommentsLoading(false);
+        }
+    }, [videoId]);
+
+    useEffect(() => {
+        if (videoId) void fetchComments();
+    }, [videoId, fetchComments]);
+
+    const handleLike = useCallback(async () => {
+        if (!videoId) return;
+        if (!currentUserId) {
+            setActionFeedback('请先登录后再点赞');
+            return;
+        }
+        try {
+            if (isLiked) {
+                await unlikeContent({ content_id: videoId, content_type: ContentType.video });
+                setLikeCount((c) => Math.max(0, c - 1));
+                setIsLiked(false);
+            } else {
+                await likeContent({ content_id: videoId, content_type: ContentType.video });
+                setLikeCount((c) => c + 1);
+                setIsLiked(true);
+            }
+            setActionFeedback('');
+        } catch (e) {
+            console.log(e);
+            setActionFeedback(getErrorMessage(e, '点赞失败，请稍后重试'));
+        }
+    }, [videoId, isLiked, currentUserId]);
+
+    const handlePublishComment = useCallback(async () => {
+        if (!videoId || !commentInput.trim()) return;
+        if (!currentUserId) {
+            setActionFeedback('请先登录后再评论');
+            return;
+        }
+        const user = getStoredUser();
+        const text = commentInput.trim();
+        setPublishLoading(true);
+        setActionFeedback('');
+        try {
+            const res = await addComment({
+                content_id: videoId,
+                content_type: ContentType.video,
+                comment_text: text,
+                parent_id: 0,
+                reply_comment_id: 0,
+                reply_user_id: 0,
+                status: 0,
+                user_name: user?.name || '',
+                avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+            });
+            setCommentInput('');
+            const data = unwrapResponse(res) as ResponseComment;
+            const newComment: RootComment = {
+                id: data.comment_id,
+                type: 'video',
+                target_id: videoId,
+                user_id: currentUserId,
+                nickname: user?.name ?? '我',
+                avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+                ip_location: '',
+                content: text,
+                sub_comment_count: 0,
+                created_at: Date.now(),
+                updated_at: Date.now(),
+            };
+            setComments((prev) => [newComment, ...prev]);
+        } catch (e) {
+            console.log(e);
+            setActionFeedback(getErrorMessage(e, '发布失败，请稍后重试'));
+        } finally {
+            setPublishLoading(false);
+        }
+    }, [videoId, commentInput, currentUserId]);
+
+    const handleShare = useCallback(async () => {
+        if (!videoId) return;
+        const shareUrl = `${window.location.origin}/vedios/${videoId}`;
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setActionFeedback('已复制链接');
+            setTimeout(() => setActionFeedback(''), 1600);
+        } catch (err) {
+            console.log(err);
+            window.prompt('复制链接', shareUrl);
+        }
+    }, [videoId]);
 
     if (!vedio) return <div style={{ color: '#334155', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
 
@@ -79,6 +209,7 @@ function Vedios() {
                                             border: '2px solid white',
                                             boxShadow: '0 10px 24px rgba(15, 23, 42, 0.12)',
                                         }}
+                                        src={'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'}
                                     />
                                     <div style={{
                                         position: 'absolute',
@@ -119,11 +250,11 @@ function Vedios() {
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                                <button className="yt-watch-action" onClick={() => setLike(!like)} type="button">
-                                    <HeartFilled className={`like-icon ${like ? 'like-icon-active' : ''}`} />
-                                    <span>12.5w</span>
+                                <button className="yt-watch-action" onClick={() => void handleLike()} type="button">
+                                    <HeartFilled className={`like-icon ${isLiked ? 'like-icon-active' : ''}`} />
+                                    <span>{likeCount >= 10000 ? `${(likeCount / 10000).toFixed(1)}w` : likeCount}</span>
                                 </button>
-                                <button className="yt-watch-action" type="button">
+                                <button className="yt-watch-action" onClick={() => void handleShare()} type="button">
                                     <ShareAltOutlined />
                                     <span>分享</span>
                                 </button>
@@ -138,7 +269,10 @@ function Vedios() {
                                 borderColor: '#ebebeb',
                             }}
                         >
-                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f0f0f' }}>12万次观看 · 2 天前</div>
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f0f0f' }}>
+                                {(vedio.view_count ?? 0).toLocaleString()}次观看
+                                {vedio.published_at ? ` · ${formatCommentTime(vedio.published_at)}` : ''}
+                            </div>
                             <div style={{ marginTop: '10px', fontSize: '14px', color: '#0f0f0f', lineHeight: 1.8 }}>
                                 @{vedio.author} · #心理健康 #正能量 #缓解焦虑
                             </div>
@@ -146,21 +280,42 @@ function Vedios() {
                         </div>
 
                         <div className="surface-card" style={{ padding: '20px', marginTop: '20px' }}>
-                            <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f0f0f', marginBottom: '16px' }}>8562 条评论</div>
+                            <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f0f0f', marginBottom: '16px' }}>{Math.max(comments.length, vedio?.comment_count ?? 0)} 条评论</div>
+                            {actionFeedback ? <div style={{ marginBottom: '12px', fontSize: '13px', color: '#ff4d67' }}>{actionFeedback}</div> : null}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                {commentItems.map((item) => (
-                                    <div key={item.id} style={{ display: 'flex', gap: '12px' }}>
-                                        <Avatar icon={<UserOutlined />} size={32} />
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontSize: '13px', color: '#606060', marginBottom: '4px' }}>{item.user}</div>
-                                            <div style={{ fontSize: '15px', color: '#0f0f0f', lineHeight: 1.5 }}>{item.text}</div>
-                                        </div>
-                                    </div>
-                                ))}
+                                {commentsLoading ? (
+                                    <div style={{ padding: '24px', textAlign: 'center', color: '#909090' }}>加载中...</div>
+                                ) : comments.length === 0 ? (
+                                    <div style={{ padding: '24px', textAlign: 'center', color: '#909090' }}>暂无评论，快来抢沙发吧</div>
+                                ) : (
+                                    comments.map((item) => {
+                                        const name = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户';
+                                        const text = (item as RootComment & { comment_text?: string }).content ?? (item as RootComment & { comment_text?: string }).comment_text ?? '';
+                                        const ts = (item as RootComment & { create_time?: number }).created_at ?? (item as RootComment & { create_time?: number }).create_time ?? 0;
+                                        return (
+                                            <div key={item.id} style={{ display: 'flex', gap: '12px' }}>
+                                                <Avatar
+                                                    src={item.avatar}
+                                                    icon={!item.avatar ? <UserOutlined /> : undefined}
+                                                    size={32}
+                                                />
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ fontSize: '13px', color: '#606060', marginBottom: '4px' }}>
+                                                        {name} · {formatCommentTime(ts)}
+                                                    </div>
+                                                    <div style={{ fontSize: '15px', color: '#0f0f0f', lineHeight: 1.5 }}>{text}</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
                             <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '16px', borderTop: '1px solid #ebebeb' }}>
                                 <input
                                     placeholder="善语结善缘，恶言伤人心"
+                                    value={commentInput}
+                                    onChange={(e) => setCommentInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && void handlePublishComment()}
                                     style={{
                                         flex: 1,
                                         height: '40px',
@@ -172,7 +327,16 @@ function Vedios() {
                                         outline: 'none',
                                     }}
                                 />
-                                <span style={{ color: '#FF2C55', fontWeight: 600, cursor: 'pointer' }}>发布</span>
+                                <span
+                                    style={{
+                                        color: publishLoading || !commentInput.trim() ? '#ccc' : '#FF2C55',
+                                        fontWeight: 600,
+                                        cursor: publishLoading || !commentInput.trim() ? 'not-allowed' : 'pointer',
+                                    }}
+                                    onClick={() => !publishLoading && commentInput.trim() && void handlePublishComment()}
+                                >
+                                    {publishLoading ? '发布中...' : '发布'}
+                                </span>
                             </div>
                         </div>
                     </div>
