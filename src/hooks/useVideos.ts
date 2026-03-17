@@ -44,6 +44,7 @@ export function useVideo(id: number | null) {
       setLoading(false)
       return
     }
+    setVedio(null)
     let active = true
     getVideoContent(id)
       .then((res: { data?: { video?: VideoItem } }) => {

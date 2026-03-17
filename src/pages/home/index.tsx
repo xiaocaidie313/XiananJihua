@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Carousel } from 'antd'
 import { getNewArticles } from '@/api/content'
 import Nav from '../../components/nav'
@@ -12,6 +13,7 @@ import { getErrorMessage, unwrapResponse } from '@/utils/appState'
 import VedioCardOutline from '@/components/vediocardoutline'
 
 function Home() {
+  const navigate = useNavigate()
   const sixNews = useAppSelector(getSixNews)
   const images = useAppSelector(getCarouselImages)
   const { vedios } = useVideos()
@@ -159,7 +161,7 @@ function Home() {
               </div>
             </div>
             <div className="yt-video-grid">
-              {vedios.map((vedio, index) => (
+              {vedios.slice(0, 8).map((vedio, index) => (
                 <VedioCardOutline vedio={vedio} key={vedio.video_id ?? index} />
               ))}
             </div>
@@ -189,7 +191,19 @@ function Home() {
             <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>继续观看</div>
             <div className="info-stack">
               {vedios.slice(0, 3).map((item, i) => (
-                <div key={item.video_id ?? i} style={{ display: 'grid', gridTemplateColumns: '120px minmax(0, 1fr)', gap: '10px' }}>
+                <div
+                  key={item.video_id ?? i}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => item.video_id != null && navigate(`/vedios/${item.video_id}`)}
+                  onKeyDown={(e) => e.key === 'Enter' && item.video_id != null && navigate(`/vedios/${item.video_id}`)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '120px minmax(0, 1fr)',
+                    gap: '10px',
+                    cursor: 'pointer',
+                  }}
+                >
                   <img src={item.cover} alt={item.name ?? ''} style={{ width: '120px', height: '68px', objectFit: 'cover', borderRadius: '10px' }} />
                   <div>
                     <div style={{ fontSize: '14px', fontWeight: 600, lineHeight: 1.45, color: '#0f0f0f' }}>{item.name ?? ''}</div>

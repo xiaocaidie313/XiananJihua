@@ -364,6 +364,7 @@ img {
   gap: 24px 16px;
 }
 
+
 .yt-watch-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;

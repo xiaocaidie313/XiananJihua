@@ -1,14 +1,10 @@
-.like-icon {
-    color: white;
-    font-size: 35px;
-    transform: scale(1);
-    transition: all 0.2s ease;
-    cursor: pointer;
+.yt-watch-action--like .anticon {
+    color: #606060;
+    transition: color 0.2s ease;
 }
 
-.like-icon-active {
+.yt-watch-action--like.is-liked .anticon {
     color: #FF2C55;
-    transform: scale(1.2);
 }
 
 /* 评论区主容器 */

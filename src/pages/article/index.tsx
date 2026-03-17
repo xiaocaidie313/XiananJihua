@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Carousel } from 'antd'
+import { useNavigate } from 'react-router-dom'
 import { getNewArticles } from '@/api/content'
 import NewsCardOutline, { type NewsCardItem } from '@/components/newcardoutLine'
-import { getCarouselImages, setCurrentIndex } from '@/features/carousel/carousleSlice'
+import { setCurrentIndex } from '@/features/carousel/carousleSlice'
 import { getSixNews } from '@/features/news/newsSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import type { ArticleSummary } from '@/constants/content'
@@ -10,7 +11,7 @@ import { getErrorMessage, unwrapResponse } from '@/utils/appState'
 
 function ArticlePage() {
   const dispatch = useAppDispatch()
-  const images = useAppSelector(getCarouselImages)
+  const navigate = useNavigate()
   const localNews = useAppSelector(getSixNews)
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -74,6 +75,7 @@ function ArticlePage() {
   }, [articles, localNews])
 
   const featuredItems = articleItems.slice(0, 3)
+  const carouselItems = featuredItems.map((item) => ({ id: item.id, url: item.cover, title: item.title }))
 
   return (
     <div className="page-shell cartoon-page">
@@ -91,7 +93,7 @@ function ArticlePage() {
           </div>
 
           <div className="cartoon-carousel">
-            {!images || images.length === 0 ? (
+            {!carouselItems.length ? (
               <div className="cartoon-carousel__placeholder">精选内容加载中...</div>
             ) : (
               <Carousel
@@ -100,10 +102,17 @@ function ArticlePage() {
                 afterChange={(index) => dispatch(setCurrentIndex(index))}
                 style={{ width: '100%', height: '100%' }}
               >
-                {images.map((image) => (
-                  <div key={image.id}>
+                {carouselItems.map((item) => (
+                  <div
+                    key={item.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/news/${item.id}`)}
+                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/news/${item.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="cartoon-carousel__item">
-                      <img src={image.url} alt={`carousel ${image.id}`} className="cartoon-carousel__image" />
+                      <img src={item.url} alt={item.title} className="cartoon-carousel__image" />
                     </div>
                   </div>
                 ))}

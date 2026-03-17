@@ -1,6 +1,7 @@
 import { Avatar } from "antd";
 import {
     HeartFilled,
+    HeartOutlined,
     ShareAltOutlined,
     PlusOutlined,
     UserOutlined
@@ -250,8 +251,15 @@ function Vedios() {
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                                <button className="yt-watch-action" onClick={() => void handleLike()} type="button">
-                                    <HeartFilled className={`like-icon ${isLiked ? 'like-icon-active' : ''}`} />
+                                {actionFeedback ? (
+                                    <div style={{ fontSize: '13px', color: actionFeedback.includes('已复制') ? '#22c55e' : '#ff4d67', marginRight: '4px' }}>{actionFeedback}</div>
+                                ) : null}
+                                <button
+                                    className={`yt-watch-action yt-watch-action--like${isLiked ? ' is-liked' : ''}`}
+                                    onClick={() => void handleLike()}
+                                    type="button"
+                                >
+                                    {isLiked ? <HeartFilled /> : <HeartOutlined />}
                                     <span>{likeCount >= 10000 ? `${(likeCount / 10000).toFixed(1)}w` : likeCount}</span>
                                 </button>
                                 <button className="yt-watch-action" onClick={() => void handleShare()} type="button">
@@ -282,6 +290,7 @@ function Vedios() {
                         <div className="surface-card" style={{ padding: '20px', marginTop: '20px' }}>
                             <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f0f0f', marginBottom: '16px' }}>{Math.max(comments.length, vedio?.comment_count ?? 0)} 条评论</div>
                             {actionFeedback ? <div style={{ marginBottom: '12px', fontSize: '13px', color: '#ff4d67' }}>{actionFeedback}</div> : null}
+                            {actionFeedback ? <div style={{ marginBottom: '12px', fontSize: '13px', color: actionFeedback.includes('已复制') ? '#22c55e' : '#ff4d67' }}>{actionFeedback}</div> : null}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 {commentsLoading ? (
                                     <div style={{ padding: '24px', textAlign: 'center', color: '#909090' }}>加载中...</div>

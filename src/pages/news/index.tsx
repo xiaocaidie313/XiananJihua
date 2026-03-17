@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import { Avatar } from 'antd'
 import { CommentOutlined, LikeOutlined, ShareAltOutlined, UserOutlined } from '@ant-design/icons'
 import { collectContent, getArticleInfo, likeContent, uncollectContent, unlikeContent } from '@/api/content'
@@ -8,6 +8,39 @@ import type { ArticleInfo } from '@/constants/content'
 import { ContentTypeId } from '@/constants/content'
 import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
 import { useParams } from 'react-router-dom'
+
+/** 独立成行的图片 URL 正则 */
+const IMAGE_LINE_REGEX = /^https?:\/\/[^\s]+\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i
+
+function renderArticleContent(content: string) {
+  if (!content) return null
+  const lines = content.split('\n')
+  return lines.map((line, i) => {
+    const trimmed = line.trim()
+    if (IMAGE_LINE_REGEX.test(trimmed)) {
+      return (
+        <img
+          key={i}
+          src={trimmed}
+          alt=""
+          style={{
+            maxWidth: '100%',
+            height: 'auto',
+            margin: '16px 0',
+            borderRadius: '8px',
+            display: 'block',
+          }}
+        />
+      )
+    }
+    return (
+      <Fragment key={i}>
+        {line}
+        {i < lines.length - 1 ? <br /> : null}
+      </Fragment>
+    )
+  })
+}
 
 function News() {
   const { id } = useParams()
@@ -196,7 +229,7 @@ function News() {
               whiteSpace: 'pre-wrap',
             }}
           >
-            <p>{contentState.content}</p>
+            {renderArticleContent(contentState.content)}
           </div>
         </article>
 
