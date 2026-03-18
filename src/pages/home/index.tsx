@@ -220,11 +220,16 @@ function Home() {
               {recommendNews.map((item) => (
                 <div
                   key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/news/${item.id}`)}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/news/${item.id}`)}
                   style={{
                     padding: '14px',
                     borderRadius: '12px',
                     background: '#f8f8f8',
                     border: '1px solid #ececec',
+                    cursor: 'pointer',
                   }}
                 >
                   <div style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.6, color: '#0f0f0f' }}>{item.title}</div>

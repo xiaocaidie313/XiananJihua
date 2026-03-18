@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Avatar } from 'antd'
+import { Avatar, Form, Input, Modal, Upload } from 'antd'
 import {
   BarChartOutlined,
+  EditOutlined,
   InfoCircleOutlined,
   LogoutOutlined,
   MessageOutlined,
@@ -9,7 +10,7 @@ import {
   RightOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { getUserInfo } from '@/api/auth'
+import { getUserInfo, updateUserInfo } from '@/api/auth'
 import type { UserInfo } from '@/constants/auth'
 import { clearLoginInfo, getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -21,6 +22,11 @@ function Me() {
   const [user, setUser] = useState<UserInfo | null>(getStoredUser())
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState('')
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [editAvatarUrl, setEditAvatarUrl] = useState<string>('')
+  const [form] = Form.useForm()
 
   const roleTextMap: Record<string, string> = {
     superadmin: '超级管理员',
@@ -82,6 +88,67 @@ function Me() {
     }
   }, [location.pathname, location.state, navigate])
 
+  const openEditModal = () => {
+    form.setFieldsValue({
+      name: user?.name ?? '',
+      phone: user?.phone ?? '',
+      department: user?.department ?? '',
+    })
+    setEditAvatarUrl(user?.avatar ?? '')
+    setEditModalOpen(true)
+  }
+
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+
+  const handleAvatarFileSelect = async (file: File) => {
+    setAvatarUploading(true)
+    try {
+      const dataUrl = await fileToDataUrl(file)
+      setEditAvatarUrl(dataUrl)
+    } catch (err) {
+      setFeedback(getErrorMessage(err, '图片读取失败，请重试'))
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  const handleEditSubmit = async () => {
+    try {
+      const values = await form.validateFields()
+      setEditLoading(true)
+      const { name, phone, department } = values
+      const params: Record<string, unknown> = { name, phone, department }
+      if (editAvatarUrl) params.avatar = editAvatarUrl
+      const response = await updateUserInfo(params)
+      const data = unwrapResponse(response)
+      const nextUser = data && typeof data === 'object' && 'user' in data
+        ? (data as { user: UserInfo }).user
+        : (data as UserInfo | null)
+      if (nextUser) {
+        setUser(nextUser)
+        localStorage.setItem('user', JSON.stringify(nextUser))
+      } else if (user) {
+        const merged = { ...user, name, phone, department } as UserInfo
+        if (editAvatarUrl) merged.avatar = editAvatarUrl
+        setUser(merged)
+        localStorage.setItem('user', JSON.stringify(merged))
+      }
+      setFeedback('资料已更新')
+      setEditModalOpen(false)
+    } catch (e) {
+      console.log(e)
+      setFeedback(getErrorMessage(e, '修改失败，请稍后重试'))
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
   const menuItems = useMemo(() => {
     return [
       {
@@ -135,6 +202,10 @@ function Me() {
           <div className="me-profile-actions">
             {user ? (
               <>
+                <button className="header-action subtle" onClick={openEditModal} type="button">
+                  <EditOutlined />
+                  <span style={{ marginLeft: '6px' }}>修改资料</span>
+                </button>
                 <button className="header-action subtle" onClick={() => void loadUser()} type="button">
                   <ReloadOutlined />
                   <span style={{ marginLeft: '6px' }}>刷新资料</span>
@@ -177,6 +248,50 @@ function Me() {
 
         {feedback && <div className="me-feedback">{feedback}</div>}
       </section>
+
+      <Modal
+        title="修改资料"
+        open={editModalOpen}
+        onCancel={() => setEditModalOpen(false)}
+        onOk={() => void handleEditSubmit()}
+        confirmLoading={editLoading}
+        okText="保存"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: '20px' }}>
+          <Form.Item label="头像">
+            <Upload
+              accept="image/*"
+              showUploadList={false}
+              beforeUpload={(file) => {
+                handleAvatarFileSelect(file)
+                return false
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Avatar
+                  size={56}
+                  src={editAvatarUrl || user?.avatar}
+                  icon={!editAvatarUrl && !user?.avatar ? <UserOutlined /> : undefined}
+                />
+                <span style={{ color: '#6366f1', fontSize: '14px' }}>
+                  {avatarUploading ? '处理中...' : '点击选择图片'}
+                </span>
+              </div>
+            </Upload>
+          </Form.Item>
+          <Form.Item name="name" label="昵称" rules={[{ required: true, message: '请输入昵称' }]}>
+            <Input placeholder="请输入昵称" />
+          </Form.Item>
+          <Form.Item name="phone" label="手机号">
+            <Input placeholder="请输入手机号" />
+          </Form.Item>
+          <Form.Item name="department" label="部门">
+            <Input placeholder="请输入部门" />
+          </Form.Item>
+        </Form>
+      </Modal>
 
       <div className="page-content-grid">
         <section className="surface-card me-menu-card">

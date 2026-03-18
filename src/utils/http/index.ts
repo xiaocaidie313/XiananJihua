@@ -68,10 +68,27 @@ export const del = <T>(url: string, params?: unknown, config?: RequestConfig): P
   return fetch<T>(url, Method.DELETE, params, config)
 }
 
+/** 上传文件（FormData，不设置 Content-Type） */
+export const postForm = <T>(url: string, data: FormData, config?: RequestConfig): Promise<T> => {
+  const token = localStorage.getItem('token')
+  return axios<T>({
+    baseURL,
+    url,
+    method: 'POST',
+    data,
+    timeout: config?.timeout,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...config?.header,
+    },
+  }).then((res) => res.data)
+}
+
 const instance = {
   get,
   post,
   del,
+  postForm,
 }
 
 export default instance
