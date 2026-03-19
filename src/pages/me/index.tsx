@@ -11,6 +11,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { getUserInfo, updateUserInfo } from '@/api/auth'
+import { uploadAvatar } from '@/utils/oss'
 import type { UserInfo } from '@/constants/auth'
 import { clearLoginInfo, getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -100,14 +101,6 @@ function Me() {
     setEditModalOpen(true)
   }
 
-  const fileToDataUrl = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(file)
-    })
-
   const MAX_AVATAR_SIZE = 2 * 1024 * 1024 // 2MB
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
@@ -123,10 +116,10 @@ function Me() {
     }
     setAvatarUploading(true)
     try {
-      const dataUrl = await fileToDataUrl(file)
-      setEditAvatarUrl(dataUrl)
+      const url = await uploadAvatar(file)
+      setEditAvatarUrl(url)
     } catch (err) {
-      setAvatarError(getErrorMessage(err, '图片读取失败，请重试'))
+      setAvatarError(getErrorMessage(err, '头像上传失败，请重试'))
     } finally {
       setAvatarUploading(false)
     }

@@ -96,7 +96,9 @@ function ShortVideo() {
             pauseAllVideosExcept(videoId)
             videoEl.currentTime = 0
             videoEl.play().catch((err) => {
-              if (err?.name !== 'AbortError') console.log(err)
+              if (err?.name !== 'AbortError' && err?.name !== 'NotSupportedError') {
+                console.warn('视频播放失败:', err)
+              }
             })
           } else {
             videoEl.pause()
@@ -173,7 +175,10 @@ function ShortVideo() {
           [videoId]: false,
         }))
       }).catch((err) => {
-        if (err?.name !== 'AbortError') console.log(err)
+        // AbortError: 用户切换视频时中断，NotSupportedError: 视频格式不支持或加载失败
+        if (err?.name !== 'AbortError' && err?.name !== 'NotSupportedError') {
+          console.warn('视频播放失败:', err)
+        }
       })
     } else {
       videoEl.pause()
@@ -361,6 +366,10 @@ function ShortVideo() {
                     }}
                     onTimeUpdate={(event) => {
                       updateProgress(vid, event.currentTarget.currentTime, event.currentTarget.duration || 0)
+                    }}
+                    onError={(e) => {
+                      const el = e.currentTarget
+                      el.error && console.warn('视频加载失败:', vedio.url, el.error.message)
                     }}
                     onClick={(e) => {
                       e.preventDefault()

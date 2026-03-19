@@ -73,8 +73,8 @@ function App() {
               <Route path="/me" element={<Me />} />
               <Route path="/shortvideo" element={<ShortVideo />} />
               <Route path="/upload" element={<UploadPage />} />
-              <Route path="/vedios" element={<VediosList />} />
               <Route path="/vedios/:id" element={<Vedios />} />
+              <Route path="/vedios" element={<VediosList />} />
               <Route path="/cartoon" element={<Cartoon />} />
               <Route path="/podcast" element={<Podcast />} />
               <Route path="*" element={<Navigate to="/" />} />

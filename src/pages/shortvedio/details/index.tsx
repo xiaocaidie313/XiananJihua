@@ -30,6 +30,7 @@ function Vedios() {
     const [commentInput, setCommentInput] = useState('');
     const [publishLoading, setPublishLoading] = useState(false);
     const [actionFeedback, setActionFeedback] = useState('');
+    const [videoError, setVideoError] = useState<string | null>(null);
     const currentUserId = getCurrentUserId();
     const recommendVedios = allVedios.filter(item => item.video_id !== videoId).slice(0, 5);
 
@@ -173,7 +174,25 @@ function Vedios() {
                         borderRadius: '16px',
                         overflow: 'hidden',
                         backgroundColor: '#020617',
+                        position: 'relative',
                     }}>
+                        {videoError ? (
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#94a3b8',
+                                padding: '24px',
+                                textAlign: 'center',
+                            }}>
+                                <div style={{ fontSize: '15px', marginBottom: '8px' }}>视频加载失败</div>
+                                <div style={{ fontSize: '13px' }}>{videoError}</div>
+                                <div style={{ fontSize: '12px', marginTop: '12px' }}>请确保视频为 MP4 格式（H.264 编码）</div>
+                            </div>
+                        ) : null}
                         <video
                             src={vedio.url}
                             controls
@@ -188,6 +207,8 @@ function Vedios() {
                                 objectFit: 'contain',
                                 backgroundColor: '#000',
                             }}
+                            onError={() => setVideoError('格式不支持或网络异常，请尝试使用 MP4 格式重新上传')}
+                            onLoadedData={() => setVideoError(null)}
                         />
                     </div>
 

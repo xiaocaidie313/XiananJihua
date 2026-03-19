@@ -34,3 +34,16 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+
+.upload-file-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.upload-file-done {
+  font-size: 14px;
+  color: #52c41a;
+  font-weight: 500;
+}

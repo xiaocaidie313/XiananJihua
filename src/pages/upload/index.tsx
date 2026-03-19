@@ -1,13 +1,23 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, Input, Button, message } from 'antd'
-import { FileTextOutlined, PlaySquareOutlined, UploadOutlined } from '@ant-design/icons'
+import { Form, Input, Button, message, Upload, Progress } from 'antd'
+import {
+  FileTextOutlined,
+  PictureOutlined,
+  PlaySquareOutlined,
+  UploadOutlined,
+} from '@ant-design/icons'
+import type { UploadProps } from 'antd'
 import { addArticle, addVideo } from '@/api/content'
+import { uploadImage, uploadVideo } from '@/utils/oss'
 import { getCurrentUserId, getStoredUser } from '@/utils/appState'
-import { getErrorMessage, unwrapResponse } from '@/utils/appState'
+import { getErrorMessage } from '@/utils/appState'
 import './index.css'
 
 type UploadType = 'video' | 'article'
+
+const VIDEO_ACCEPT = 'video/mp4'
+const IMAGE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp'
 
 function UploadPage() {
   const navigate = useNavigate()
@@ -15,6 +25,10 @@ function UploadPage() {
   const [uploadType, setUploadType] = useState<UploadType>('video')
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const [videoUploadPercent, setVideoUploadPercent] = useState<number | null>(null)
+  const [coverUploadPercent, setCoverUploadPercent] = useState<number | null>(null)
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>('')
+  const [uploadedCoverUrl, setUploadedCoverUrl] = useState<string>('')
 
   const parseTags = (val: string | string[]) =>
     typeof val === 'string'
@@ -30,13 +44,17 @@ function UploadPage() {
       url: values.url as string,
       published_at: Math.floor(Date.now() / 1000),
       tags: parseTags(values.tags as string),
-    })
-    const data = unwrapResponse(res) as { video_id?: number }
+    }) as { code?: number; message?: string; data?: { video_id?: number } }
+    const ok = res?.code === 0 || res?.code === 200
+    if (!ok) {
+      throw new Error(res?.message ?? '视频发布失败')
+    }
+    const data = (res?.data ?? res) as { video_id?: number }
     message.success('视频上传成功')
     if (data?.video_id) {
-      navigate(`/vedios/${data.video_id}`)
+      navigate(`/vedios/${data.video_id}`, { state: { fromUpload: true } })
     } else {
-      navigate('/vedios')
+      navigate('/vedios', { state: { fromUpload: true } })
     }
   }
 
@@ -50,8 +68,12 @@ function UploadPage() {
       url: String(values.url || ''),
       published_at: Math.floor(Date.now() / 1000),
       tags: parseTags(values.tags as string),
-    })
-    const data = unwrapResponse(res) as { article_id?: number }
+    }) as { code?: number; message?: string; data?: { article_id?: number } }
+    const ok = res?.code === 0 || res?.code === 200
+    if (!ok) {
+      throw new Error(res?.message ?? '文章发布失败')
+    }
+    const data = (res?.data ?? res) as { article_id?: number }
     message.success('文章发布成功')
     if (data?.article_id) {
       navigate(`/news/${data.article_id}`)
@@ -76,12 +98,92 @@ function UploadPage() {
         await handleArticleSubmit(values)
       }
       form.resetFields()
+      setVideoUploadPercent(null)
+      setCoverUploadPercent(null)
+      setUploadedVideoUrl('')
+      setUploadedCoverUrl('')
     } catch (e) {
       console.log(e)
       message.error(getErrorMessage(e, '提交失败，请稍后重试'))
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleVideoUpload: UploadProps['customRequest'] = async ({ file, onSuccess, onError }) => {
+    const f = file as File
+    setVideoUploadPercent(0)
+    try {
+      const url = await uploadVideo(f, (p) => setVideoUploadPercent(p))
+      form.setFieldValue('url', url)
+      setUploadedVideoUrl(url)
+      onSuccess?.(url)
+      message.success('视频已上传至 OSS')
+    } catch (e) {
+      message.error(getErrorMessage(e, '视频上传失败'))
+      onError?.(e as Error)
+    } finally {
+      setVideoUploadPercent(null)
+    }
+  }
+
+  const handleCoverUpload: UploadProps['customRequest'] = async ({ file, onSuccess, onError }) => {
+    const f = file as File
+    setCoverUploadPercent(0)
+    try {
+      const url = await uploadImage(f, (p) => setCoverUploadPercent(p))
+      form.setFieldValue('cover', url)
+      setUploadedCoverUrl(url)
+      onSuccess?.(url)
+      message.success('封面已上传至 OSS')
+    } catch (e) {
+      message.error(getErrorMessage(e, '封面上传失败'))
+      onError?.(e as Error)
+    } finally {
+      setCoverUploadPercent(null)
+    }
+  }
+
+  const videoUploadProps: UploadProps = {
+    accept: VIDEO_ACCEPT,
+    showUploadList: false,
+    customRequest: handleVideoUpload,
+    beforeUpload: (file) => {
+      if (file.type !== 'video/mp4') {
+        message.error('请选择 MP4 格式视频，以确保浏览器可正常播放')
+        return Upload.LIST_IGNORE
+      }
+      const isMp4 = file.name.toLowerCase().endsWith('.mp4')
+      if (!isMp4) {
+        message.error('请选择 .mp4 格式视频文件')
+        return Upload.LIST_IGNORE
+      }
+      const maxSize = 500 * 1024 * 1024
+      if (file.size > maxSize) {
+        message.error('视频大小不能超过 500MB')
+        return Upload.LIST_IGNORE
+      }
+      return true
+    },
+  }
+
+  const coverUploadProps: UploadProps = {
+    accept: IMAGE_ACCEPT,
+    showUploadList: false,
+    customRequest: handleCoverUpload,
+    beforeUpload: (file) => {
+      const isImage = file.type.startsWith('image/')
+      if (!isImage) {
+        message.error('请选择图片文件（JPG、PNG、GIF、WebP）')
+        return Upload.LIST_IGNORE
+      }
+      const maxSize = 5 * 1024 * 1024
+      if (file.size > maxSize) {
+        message.error('封面大小不能超过 5MB')
+        return Upload.LIST_IGNORE
+      }
+      return true
+    },
   }
 
   return (
@@ -92,7 +194,7 @@ function UploadPage() {
           上传内容
         </h1>
         <p className="page-subtitle">
-          选择类型后填写信息，图片/视频链接需先上传至图床或 OSS
+          选择视频或图片文件，将自动上传至阿里云 OSS
         </p>
       </section>
 
@@ -102,7 +204,7 @@ function UploadPage() {
             <button
               type="button"
               className={`yt-filter-chip${uploadType === 'video' ? ' is-active' : ''}`}
-              onClick={() => { setUploadType('video'); form.resetFields() }}
+              onClick={() => { setUploadType('video'); form.resetFields(); setVideoUploadPercent(null); setCoverUploadPercent(null); setUploadedVideoUrl(''); setUploadedCoverUrl('') }}
             >
               <PlaySquareOutlined style={{ marginRight: '6px' }} />
               视频
@@ -110,7 +212,7 @@ function UploadPage() {
             <button
               type="button"
               className={`yt-filter-chip${uploadType === 'article' ? ' is-active' : ''}`}
-              onClick={() => { setUploadType('article'); form.resetFields() }}
+              onClick={() => { setUploadType('article'); form.resetFields(); setVideoUploadPercent(null); setCoverUploadPercent(null); setUploadedVideoUrl(''); setUploadedCoverUrl('') }}
             >
               <FileTextOutlined style={{ marginRight: '6px' }} />
               文章
@@ -158,19 +260,43 @@ function UploadPage() {
             {uploadType === 'video' && (
               <Form.Item
                 name="url"
-                label="视频链接"
-                rules={[{ required: true, message: '请输入视频链接' }]}
+                label="选择视频"
+                rules={[{ required: true, message: '请选择并上传视频文件' }]}
               >
-                <Input placeholder="https://xxx.com/video.mp4" size="large" />
+                <div className="upload-file-row">
+                  <Upload {...videoUploadProps}>
+                    <Button icon={<PlaySquareOutlined />} size="large">
+                      选择视频文件
+                    </Button>
+                  </Upload>
+                  {uploadedVideoUrl && (
+                    <span className="upload-file-done">已上传</span>
+                  )}
+                  {videoUploadPercent !== null && (
+                    <Progress percent={videoUploadPercent} size="small" style={{ width: 120, marginLeft: 12 }} />
+                  )}
+                </div>
               </Form.Item>
             )}
 
             <Form.Item
               name="cover"
-              label="封面链接"
-              rules={[{ required: true, message: '请输入封面链接' }]}
+              label="选择封面"
+              rules={[{ required: true, message: '请选择并上传封面图片' }]}
             >
-              <Input placeholder="https://xxx.com/cover.jpg" size="large" />
+              <div className="upload-file-row">
+                <Upload {...coverUploadProps}>
+                  <Button icon={<PictureOutlined />} size="large">
+                    选择封面图片
+                  </Button>
+                </Upload>
+                {uploadedCoverUrl && (
+                  <span className="upload-file-done">已上传</span>
+                )}
+                {coverUploadPercent !== null && (
+                  <Progress percent={coverUploadPercent} size="small" style={{ width: 120, marginLeft: 12 }} />
+                )}
+              </div>
             </Form.Item>
 
             <Form.Item name="author" label="作者">
@@ -214,7 +340,13 @@ function UploadPage() {
             <div style={{ padding: '14px 16px', borderRadius: '12px', background: '#f8fafc' }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>视频上传</div>
               <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
-                视频和封面需先上传至 OSS 或图床，再粘贴链接地址
+                仅支持 MP4 格式（H.264 编码），最大 500MB，确保各浏览器可正常播放
+              </div>
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: '12px', background: '#f8fafc' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>封面图片</div>
+              <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
+                支持 JPG、PNG、GIF、WebP，最大 5MB。上传前自动压缩，加快传输
               </div>
             </div>
             <div style={{ padding: '14px 16px', borderRadius: '12px', background: '#f8fafc' }}>
