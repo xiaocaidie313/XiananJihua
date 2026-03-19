@@ -84,7 +84,7 @@ function Header({ handleBack, canToggleSidebar = true, isSidebarCollapsed = fals
         </div>
 
         <div className="header-actions">
-          <button className="header-action subtle" onClick={() => navigate('/shortvideo')} type="button">
+          <button className="header-action subtle" onClick={() => navigate('/upload')} type="button">
             上传
           </button>
           <button className="header-icon-button" onClick={() => navigate('/me')} type="button">

@@ -1,6 +1,6 @@
 import Header from './components/header'
 import Sidebar from './components/sidebar'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Cartoon from './pages/cartoon'
 import Chat from './pages/chat'
@@ -13,12 +13,30 @@ import Podcast from './pages/podcast'
 import ShortVideo from './pages/shortvedio'
 import Vedios from './pages/shortvedio/details'
 import VediosList from './pages/vedios'
+import UploadPage from './pages/upload'
 import Warn from './pages/warn'
+
+const PAGE_TRANSITION_DELAY = 500
 
 function App() {
   const location = useLocation()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [showContent, setShowContent] = useState(true)
+  const isFirstMount = useRef(true)
   const isLoginPage = location.pathname.startsWith('/login')
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
+    const hideTimer = setTimeout(() => setShowContent(false), 0)
+    const showTimer = setTimeout(() => setShowContent(true), PAGE_TRANSITION_DELAY)
+    return () => {
+      clearTimeout(hideTimer)
+      clearTimeout(showTimer)
+    }
+  }, [location.pathname])
   // const shouldShowFooter = !location.pathname.startsWith('/chat') && !isLoginPage
   const shouldShowSidebar = !isLoginPage
   const canToggleSidebar = shouldShowSidebar
@@ -33,7 +51,17 @@ function App() {
       <div className="app-content">
         <div className={`app-layout${shouldShowSidebar ? '' : ' no-sidebar'}${shouldShowSidebar && isSidebarCollapsed ? ' is-collapsed' : ''}`}>
           {shouldShowSidebar && <Sidebar collapsed={isSidebarCollapsed} />}
-          <main className={`app-main${isLoginPage ? ' app-main--login' : ''}`}>
+          <main className={`app-main${isLoginPage ? ' app-main--login' : ''}`} style={{ position: 'relative' }}>
+            {!showContent && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: '#ffffff',
+                  zIndex: 10,
+                }}
+              />
+            )}
             <Routes> 
               <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/home" element={<Home />} />
@@ -44,6 +72,7 @@ function App() {
               <Route path="/news/:id" element={<News />} />
               <Route path="/me" element={<Me />} />
               <Route path="/shortvideo" element={<ShortVideo />} />
+              <Route path="/upload" element={<UploadPage />} />
               <Route path="/vedios" element={<VediosList />} />
               <Route path="/vedios/:id" element={<Vedios />} />
               <Route path="/cartoon" element={<Cartoon />} />

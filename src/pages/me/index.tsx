@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Avatar, Form, Input, Modal, Upload } from 'antd'
+import { Avatar, Form, Input, Modal, Spin, Upload } from 'antd'
 import {
   BarChartOutlined,
   EditOutlined,
@@ -25,6 +25,7 @@ function Me() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
   const [editAvatarUrl, setEditAvatarUrl] = useState<string>('')
   const [form] = Form.useForm()
 
@@ -95,6 +96,7 @@ function Me() {
       department: user?.department ?? '',
     })
     setEditAvatarUrl(user?.avatar ?? '')
+    setAvatarError('')
     setEditModalOpen(true)
   }
 
@@ -106,16 +108,33 @@ function Me() {
       reader.readAsDataURL(file)
     })
 
+  const MAX_AVATAR_SIZE = 2 * 1024 * 1024 // 2MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
   const handleAvatarFileSelect = async (file: File) => {
+    setAvatarError('')
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setAvatarError('请选择 JPG、PNG、GIF 或 WebP 格式的图片')
+      return
+    }
+    if (file.size > MAX_AVATAR_SIZE) {
+      setAvatarError('图片大小不能超过 2MB')
+      return
+    }
     setAvatarUploading(true)
     try {
       const dataUrl = await fileToDataUrl(file)
       setEditAvatarUrl(dataUrl)
     } catch (err) {
-      setFeedback(getErrorMessage(err, '图片读取失败，请重试'))
+      setAvatarError(getErrorMessage(err, '图片读取失败，请重试'))
     } finally {
       setAvatarUploading(false)
     }
+  }
+
+  const handleAvatarRemove = () => {
+    setEditAvatarUrl(user?.avatar ?? '')
+    setAvatarError('')
   }
 
   const handleEditSubmit = async () => {
@@ -261,25 +280,78 @@ function Me() {
       >
         <Form form={form} layout="vertical" style={{ marginTop: '20px' }}>
           <Form.Item label="头像">
-            <Upload
-              accept="image/*"
-              showUploadList={false}
-              beforeUpload={(file) => {
-                handleAvatarFileSelect(file)
-                return false
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+                padding: '20px',
+                border: '2px dashed #e2e8f0',
+                borderRadius: '12px',
+                background: '#fafafa',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ position: 'relative', flexShrink: 0 }}>
                 <Avatar
-                  size={56}
+                  size={80}
                   src={editAvatarUrl || user?.avatar}
                   icon={!editAvatarUrl && !user?.avatar ? <UserOutlined /> : undefined}
+                  style={{ backgroundColor: '#e2e8f0' }}
                 />
-                <span style={{ color: '#6366f1', fontSize: '14px' }}>
-                  {avatarUploading ? '处理中...' : '点击选择图片'}
-                </span>
+                {avatarUploading && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(255,255,255,0.8)',
+                      borderRadius: '50%',
+                    }}
+                  >
+                    <Spin size="small" />
+                  </div>
+                )}
               </div>
-            </Upload>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Upload
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    handleAvatarFileSelect(file)
+                    return false
+                  }}
+                >
+                  <span style={{ color: '#6366f1', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>
+                    点击选择图片
+                  </span>
+                </Upload>
+                <div style={{ marginTop: '6px', fontSize: '12px', color: '#94a3b8' }}>
+                  支持 JPG、PNG、GIF、WebP，不超过 2MB
+                </div>
+                {avatarError && (
+                  <div style={{ marginTop: '6px', fontSize: '12px', color: '#ef4444' }}>{avatarError}</div>
+                )}
+                {(editAvatarUrl && editAvatarUrl !== user?.avatar) && (
+                  <button
+                    type="button"
+                    onClick={handleAvatarRemove}
+                    style={{
+                      marginTop: '8px',
+                      padding: 0,
+                      border: 'none',
+                      background: 'none',
+                      color: '#94a3b8',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    恢复原头像
+                  </button>
+                )}
+              </div>
+            </div>
           </Form.Item>
           <Form.Item name="name" label="昵称" rules={[{ required: true, message: '请输入昵称' }]}>
             <Input placeholder="请输入昵称" />

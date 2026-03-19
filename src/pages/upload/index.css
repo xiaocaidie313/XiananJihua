@@ -1,0 +1,36 @@
+.upload-type-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.upload-type-row .yt-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-type-row .yt-filter-chip:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.upload-type-row .yt-filter-chip.is-active {
+  background: #0f0f0f;
+  border-color: #0f0f0f;
+  color: #ffffff;
+}
+
+.upload-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
