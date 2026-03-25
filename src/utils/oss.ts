@@ -55,6 +55,28 @@ export async function uploadVideo(
 }
 
 /**
+ * 上传播客音频到 OSS voic/ 目录（与视频同 Bucket，MP3、M4A、WAV 等）
+ * @returns 公网可访问的完整 URL
+ */
+export async function uploadPodcastAudio(
+  file: File,
+  onProgress?: UploadProgress,
+): Promise<string> {
+  const client = getClient()
+  const objectName = genFileName(file.name, OSS_CONFIG.voicePrefix)
+  const fileSize = file.size
+  if (fileSize > 20 * 1024 * 1024) {
+    await client.multipartUpload(objectName, file, {
+      progress: (p: number) => onProgress?.(Math.round(p * 100)),
+    })
+    return getOssFileUrl(objectName)
+  }
+  await client.put(objectName, file)
+  onProgress?.(100)
+  return getOssFileUrl(objectName)
+}
+
+/**
  * 上传图片到 OSS pics/ 目录
  * 上传前自动压缩以加快速度
  * @returns 公网可访问的完整 URL

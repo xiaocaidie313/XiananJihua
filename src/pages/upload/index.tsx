@@ -6,18 +6,39 @@ import {
   PictureOutlined,
   PlaySquareOutlined,
   UploadOutlined,
+  CustomerServiceOutlined,
 } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
-import { addArticle, addVideo } from '@/api/content'
-import { uploadImage, uploadVideo } from '@/utils/oss'
+import { addArticle, addPodcast, addVideo } from '@/api/content'
+import { uploadImage, uploadPodcastAudio, uploadVideo } from '@/utils/oss'
 import { getCurrentUserId, getStoredUser } from '@/utils/appState'
 import { getErrorMessage } from '@/utils/appState'
 import './index.css'
 
-type UploadType = 'video' | 'article'
+type UploadType = 'video' | 'article' | 'podcast'
 
 const VIDEO_ACCEPT = 'video/mp4'
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/gif,image/webp'
+/** 播客音频：MP3、M4A、WAV */
+const PODCAST_ACCEPT = 'audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/x-wav,.mp3,.m4a,.wav'
+
+const PODCAST_EXT = /\.(mp3|m4a|wav)$/i
+
+function parsePodcastHighlights(text: string): { highlight: string; second: number }[] {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  const out: { highlight: string; second: number }[] = []
+  for (const line of lines) {
+    const m = line.match(/^(\d{1,2}):(\d{2})\s+(.+)$/)
+    if (m) {
+      const min = Number(m[1])
+      const sec = Number(m[2])
+      if (Number.isFinite(min) && Number.isFinite(sec)) {
+        out.push({ second: min * 60 + sec, highlight: m[3].trim() })
+      }
+    }
+  }
+  return out
+}
 
 function UploadPage() {
   const navigate = useNavigate()
@@ -29,6 +50,8 @@ function UploadPage() {
   const [coverUploadPercent, setCoverUploadPercent] = useState<number | null>(null)
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>('')
   const [uploadedCoverUrl, setUploadedCoverUrl] = useState<string>('')
+  const [audioUploadPercent, setAudioUploadPercent] = useState<number | null>(null)
+  const [uploadedAudioUrl, setUploadedAudioUrl] = useState<string>('')
 
   const parseTags = (val: string | string[]) =>
     typeof val === 'string'
@@ -55,6 +78,34 @@ function UploadPage() {
       navigate(`/vedios/${data.video_id}`, { state: { fromUpload: true } })
     } else {
       navigate('/vedios', { state: { fromUpload: true } })
+    }
+  }
+
+  const handlePodcastSubmit = async (values: Record<string, unknown>) => {
+    const highlightsText = (values.highlightsText as string) || ''
+    const highlights = parsePodcastHighlights(highlightsText)
+    const res = await addPodcast({
+      name: values.name as string,
+      description: (values.description as string) || (values.name as string),
+      author: (values.author as string) || user?.name || '用户',
+      cover: values.cover as string,
+      url: values.url as string,
+      channel: (values.channel as string) || '播客',
+      published_at: Math.floor(Date.now() / 1000),
+      status: 1,
+      tags: parseTags(values.tags as string),
+      highlights,
+    }) as { code?: number; message?: string; data?: { podcast_id?: number } }
+    const ok = res?.code === 0 || res?.code === 200
+    if (!ok) {
+      throw new Error(res?.message ?? '播客发布失败')
+    }
+    const data = (res?.data ?? res) as { podcast_id?: number }
+    message.success('播客发布成功')
+    if (data?.podcast_id) {
+      navigate('/podcast', { state: { fromUpload: true } })
+    } else {
+      navigate('/podcast')
     }
   }
 
@@ -94,6 +145,8 @@ function UploadPage() {
       setLoading(true)
       if (uploadType === 'video') {
         await handleVideoSubmit(values)
+      } else if (uploadType === 'podcast') {
+        await handlePodcastSubmit(values)
       } else {
         await handleArticleSubmit(values)
       }
@@ -102,6 +155,8 @@ function UploadPage() {
       setCoverUploadPercent(null)
       setUploadedVideoUrl('')
       setUploadedCoverUrl('')
+      setAudioUploadPercent(null)
+      setUploadedAudioUrl('')
     } catch (e) {
       console.log(e)
       message.error(getErrorMessage(e, '提交失败，请稍后重试'))
@@ -124,6 +179,23 @@ function UploadPage() {
       onError?.(e as Error)
     } finally {
       setVideoUploadPercent(null)
+    }
+  }
+
+  const handlePodcastAudioUpload: UploadProps['customRequest'] = async ({ file, onSuccess, onError }) => {
+    const f = file as File
+    setAudioUploadPercent(0)
+    try {
+      const url = await uploadPodcastAudio(f, (p) => setAudioUploadPercent(p))
+      form.setFieldValue('url', url)
+      setUploadedAudioUrl(url)
+      onSuccess?.(url)
+      message.success('音频已上传至 OSS')
+    } catch (e) {
+      message.error(getErrorMessage(e, '音频上传失败'))
+      onError?.(e as Error)
+    } finally {
+      setAudioUploadPercent(null)
     }
   }
 
@@ -167,6 +239,27 @@ function UploadPage() {
     },
   }
 
+  const podcastAudioUploadProps: UploadProps = {
+    accept: PODCAST_ACCEPT,
+    showUploadList: false,
+    customRequest: handlePodcastAudioUpload,
+    beforeUpload: (file) => {
+      const okExt = PODCAST_EXT.test(file.name)
+      const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/wav', 'audio/x-wav']
+      const typeOk = !file.type || allowedTypes.includes(file.type)
+      if (!okExt && !typeOk) {
+        message.error('请选择 MP3、M4A 或 WAV 格式音频')
+        return Upload.LIST_IGNORE
+      }
+      const maxSize = 300 * 1024 * 1024
+      if (file.size > maxSize) {
+        message.error('音频大小不能超过 300MB')
+        return Upload.LIST_IGNORE
+      }
+      return true
+    },
+  }
+
   const coverUploadProps: UploadProps = {
     accept: IMAGE_ACCEPT,
     showUploadList: false,
@@ -194,7 +287,7 @@ function UploadPage() {
           上传内容
         </h1>
         <p className="page-subtitle">
-          选择视频或图片文件，将自动上传至阿里云 OSS
+          选择视频、音频或图片文件，将自动上传至阿里云 OSS
         </p>
       </section>
 
@@ -204,7 +297,16 @@ function UploadPage() {
             <button
               type="button"
               className={`yt-filter-chip${uploadType === 'video' ? ' is-active' : ''}`}
-              onClick={() => { setUploadType('video'); form.resetFields(); setVideoUploadPercent(null); setCoverUploadPercent(null); setUploadedVideoUrl(''); setUploadedCoverUrl('') }}
+              onClick={() => {
+                setUploadType('video')
+                form.resetFields()
+                setVideoUploadPercent(null)
+                setCoverUploadPercent(null)
+                setUploadedVideoUrl('')
+                setUploadedCoverUrl('')
+                setAudioUploadPercent(null)
+                setUploadedAudioUrl('')
+              }}
             >
               <PlaySquareOutlined style={{ marginRight: '6px' }} />
               视频
@@ -212,33 +314,78 @@ function UploadPage() {
             <button
               type="button"
               className={`yt-filter-chip${uploadType === 'article' ? ' is-active' : ''}`}
-              onClick={() => { setUploadType('article'); form.resetFields(); setVideoUploadPercent(null); setCoverUploadPercent(null); setUploadedVideoUrl(''); setUploadedCoverUrl('') }}
+              onClick={() => {
+                setUploadType('article')
+                form.resetFields()
+                setVideoUploadPercent(null)
+                setCoverUploadPercent(null)
+                setUploadedVideoUrl('')
+                setUploadedCoverUrl('')
+                setAudioUploadPercent(null)
+                setUploadedAudioUrl('')
+              }}
             >
               <FileTextOutlined style={{ marginRight: '6px' }} />
               文章
+            </button>
+            <button
+              type="button"
+              className={`yt-filter-chip${uploadType === 'podcast' ? ' is-active' : ''}`}
+              onClick={() => {
+                setUploadType('podcast')
+                form.resetFields()
+                setVideoUploadPercent(null)
+                setCoverUploadPercent(null)
+                setUploadedVideoUrl('')
+                setUploadedCoverUrl('')
+                setAudioUploadPercent(null)
+                setUploadedAudioUrl('')
+              }}
+            >
+              <CustomerServiceOutlined style={{ marginRight: '6px' }} />
+              播客
             </button>
           </div>
 
           <Form
             form={form}
             layout="vertical"
-            initialValues={{ author: user?.name || '' }}
+            initialValues={{ author: user?.name || '', channel: '播客' }}
             style={{ marginTop: '24px' }}
           >
             <Form.Item
               name="name"
-              label={uploadType === 'video' ? '视频标题' : '文章标题'}
+              label={
+                uploadType === 'video' ? '视频标题' : uploadType === 'podcast' ? '播客标题' : '文章标题'
+              }
               rules={[{ required: true, message: '请输入标题' }]}
             >
-              <Input placeholder={uploadType === 'video' ? '请输入视频标题' : '请输入文章标题'} size="large" />
+              <Input
+                placeholder={
+                  uploadType === 'video'
+                    ? '请输入视频标题'
+                    : uploadType === 'podcast'
+                      ? '请输入播客标题'
+                      : '请输入文章标题'
+                }
+                size="large"
+              />
             </Form.Item>
 
             <Form.Item
               name="description"
-              label={uploadType === 'video' ? '视频简介' : '文章摘要'}
+              label={
+                uploadType === 'video' ? '视频简介' : uploadType === 'podcast' ? '播客简介' : '文章摘要'
+              }
             >
               <Input.TextArea
-                placeholder={uploadType === 'video' ? '请输入视频简介（选填）' : '请输入文章摘要，用于列表展示'}
+                placeholder={
+                  uploadType === 'video'
+                    ? '请输入视频简介（选填）'
+                    : uploadType === 'podcast'
+                      ? '请输入播客简介，用于列表展示（选填）'
+                      : '请输入文章摘要，用于列表展示'
+                }
                 rows={3}
               />
             </Form.Item>
@@ -277,6 +424,44 @@ function UploadPage() {
                   )}
                 </div>
               </Form.Item>
+            )}
+
+            {uploadType === 'podcast' && (
+              <>
+                <Form.Item
+                  name="url"
+                  label="选择音频"
+                  rules={[{ required: true, message: '请选择并上传音频文件' }]}
+                >
+                  <div className="upload-file-row">
+                    <Upload {...podcastAudioUploadProps}>
+                      <Button icon={<CustomerServiceOutlined />} size="large">
+                        选择音频文件
+                      </Button>
+                    </Upload>
+                    {uploadedAudioUrl && (
+                      <span className="upload-file-done">已上传</span>
+                    )}
+                    {audioUploadPercent !== null && (
+                      <Progress percent={audioUploadPercent} size="small" style={{ width: 120, marginLeft: 12 }} />
+                    )}
+                  </div>
+                </Form.Item>
+                <Form.Item name="channel" label="频道名称">
+                  <Input placeholder="如：心理健康、校园话题" size="large" />
+                </Form.Item>
+                <Form.Item
+                  name="highlightsText"
+                  label="节目章节（选填）"
+                  extra="每行一条，格式：分:秒 标题，例如 00:56 开场白"
+                >
+                  <Input.TextArea
+                    placeholder={'00:56 开场白\n02:31 核心内容\n09:53 总结'}
+                    rows={5}
+                    style={{ fontFamily: 'inherit' }}
+                  />
+                </Form.Item>
+              </>
             )}
 
             <Form.Item
@@ -322,7 +507,7 @@ function UploadPage() {
                   loading={loading}
                   onClick={() => void handleSubmit()}
                 >
-                  {uploadType === 'video' ? '提交视频' : '发布文章'}
+                  {uploadType === 'video' ? '提交视频' : uploadType === 'podcast' ? '发布播客' : '发布文章'}
                 </Button>
                 <Button size="large" onClick={() => navigate(-1)}>
                   取消
@@ -353,6 +538,12 @@ function UploadPage() {
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>文章发布</div>
               <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
                 正文中图片可单独一行粘贴图片链接，将自动渲染显示
+              </div>
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: '12px', background: '#f8fafc' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>播客上传</div>
+              <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
+                支持 MP3、M4A、WAV，最大 300MB，音频存入同 Bucket 的 <code style={{ fontSize: 12 }}>voic/</code> 目录；封面仍在 <code style={{ fontSize: 12 }}>pics/</code>。可在 .env.local 中配置 <code style={{ fontSize: 12 }}>VITE_OSS_VOICE_PREFIX</code>、<code style={{ fontSize: 12 }}>VITE_OSS_PIC_PREFIX</code>
               </div>
             </div>
           </div>
