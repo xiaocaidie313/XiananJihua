@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, Input, Button, message, Upload, Progress } from 'antd'
 import {
@@ -13,6 +13,7 @@ import { addArticle, addPodcast, addVideo } from '@/api/content'
 import { uploadImage, uploadPodcastAudio, uploadVideo } from '@/utils/oss'
 import { getCurrentUserId, getStoredUser } from '@/utils/appState'
 import { getErrorMessage } from '@/utils/appState'
+import { canAccessUpload } from '@/utils/authz'
 import './index.css'
 
 type UploadType = 'video' | 'article' | 'podcast'
@@ -43,6 +44,13 @@ function parsePodcastHighlights(text: string): { highlight: string; second: numb
 function UploadPage() {
   const navigate = useNavigate()
   const user = getStoredUser()
+
+  useEffect(() => {
+    if (!canAccessUpload(getStoredUser())) {
+      message.warning('仅超级管理员与教职工可访问上传页')
+      navigate('/home', { replace: true })
+    }
+  }, [navigate])
   const [uploadType, setUploadType] = useState<UploadType>('video')
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)

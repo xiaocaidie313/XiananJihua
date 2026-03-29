@@ -2,6 +2,8 @@ import { LeftOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons'
 import { SearchIcon } from '../icon'
 import { useState, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { getStoredUser } from '@/utils/appState'
+import { canAccessUpload } from '@/utils/authz'
 import './index.css'
 
 interface HeaderProps {
@@ -15,7 +17,20 @@ function Header({ handleBack, canToggleSidebar = true, isSidebarCollapsed = fals
   const location = useLocation()
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
-  const topLevelPaths = new Set(['/home', '/shortvideo', '/vedios', '/article', '/cartoon', '/podcast', '/warn', '/chat', '/me', '/login'])
+  const topLevelPaths = new Set([
+    '/home',
+    '/shortvideo',
+    '/vedios',
+    '/article',
+    '/cartoon',
+    '/podcast',
+    '/warn',
+    '/chat',
+    '/me',
+    '/login',
+    '/upload',
+  ])
+  const showUploadEntry = canAccessUpload(getStoredUser())
   const showBackButton = !topLevelPaths.has(location.pathname)
   const compactSearch = location.pathname.startsWith('/news/') || location.pathname.startsWith('/vedios/')
 
@@ -84,9 +99,11 @@ function Header({ handleBack, canToggleSidebar = true, isSidebarCollapsed = fals
         </div>
 
         <div className="header-actions">
-          <button className="header-action subtle" onClick={() => navigate('/upload')} type="button">
-            上传
-          </button>
+          {showUploadEntry && (
+            <button className="header-action subtle" onClick={() => navigate('/upload')} type="button">
+              上传
+            </button>
+          )}
           <button className="header-icon-button" onClick={() => navigate('/me')} type="button">
             <UserOutlined />
           </button>
