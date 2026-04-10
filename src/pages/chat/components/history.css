@@ -1,29 +1,41 @@
 .chat-history {
   flex-shrink: 0;
-  width: 220px;
+  width: 248px;
   border-right: 1px solid #eef2f7;
   display: flex;
   flex-direction: column;
-  background: #fafbfc;
+  background: #f8fafc;
+}
+
+.chat-history__top {
+  flex-shrink: 0;
+  padding: 14px 12px 10px;
+}
+
+.chat-history__title {
+  padding: 2px 4px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
 }
 
 .chat-history__new-btn {
-  flex-shrink: 0;
-  margin: 14px 12px 12px;
-  padding: 10px 16px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d8dee7;
+  border-radius: 14px;
   background: #ffffff;
-  color: #5b4bdb;
+  color: #334155;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: left;
 }
 
 .chat-history__new-btn:hover:not(:disabled) {
-  border-color: #8b5cf6;
-  background: #f5f3ff;
+  border-color: #cbd5e1;
+  background: #f8fafc;
 }
 
 .chat-history__new-btn:disabled {
@@ -37,7 +49,7 @@
   padding: 0 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .chat-history__empty {
@@ -49,22 +61,25 @@
 
 .chat-history__item {
   width: 100%;
-  padding: 10px 12px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
   text-align: left;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .chat-history__item:hover:not(:disabled) {
-  background: #f1f5f9;
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
 }
 
 .chat-history__item.is-active {
-  background: #ede9fe;
-  color: #5b4bdb;
+  background: #eef4ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
 }
 
 .chat-history__item:disabled {
@@ -75,7 +90,8 @@
 .chat-history__item-title {
   display: block;
   font-size: 13px;
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.5;
   color: #334155;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -83,5 +99,5 @@
 }
 
 .chat-history__item.is-active .chat-history__item-title {
-  color: #5b4bdb;
+  color: #2563eb;
 }

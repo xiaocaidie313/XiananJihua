@@ -24,6 +24,7 @@ function App() {
   const [showContent, setShowContent] = useState(true)
   const isFirstMount = useRef(true)
   const isLoginPage = location.pathname.startsWith('/login')
+  const isChatPage = location.pathname.startsWith('/chat')
 
   useEffect(() => {
     if (isFirstMount.current) {
@@ -51,7 +52,10 @@ function App() {
       <div className="app-content">
         <div className={`app-layout${shouldShowSidebar ? '' : ' no-sidebar'}${shouldShowSidebar && isSidebarCollapsed ? ' is-collapsed' : ''}`}>
           {shouldShowSidebar && <Sidebar collapsed={isSidebarCollapsed} />}
-          <main className={`app-main${isLoginPage ? ' app-main--login' : ''}`} style={{ position: 'relative' }}>
+          <main
+            className={`app-main${isLoginPage ? ' app-main--login' : ''}${isChatPage ? ' app-main--chat' : ''}`}
+            style={{ position: 'relative' }}
+          >
             {!showContent && (
               <div
                 style={{

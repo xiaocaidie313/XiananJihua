@@ -12,14 +12,17 @@ interface HistoryProps {
 function History({ sessions, currentSessionId, onNewChat, onSelectSession, disabled }: HistoryProps) {
   return (
     <aside className="chat-history">
-      <button
-        type="button"
-        className="chat-history__new-btn"
-        onClick={onNewChat}
-        disabled={disabled}
-      >
-        + 新对话
-      </button>
+      <div className="chat-history__top">
+        <div className="chat-history__title">对话记录</div>
+        <button
+          type="button"
+          className="chat-history__new-btn"
+          onClick={onNewChat}
+          disabled={disabled}
+        >
+          + 新对话
+        </button>
+      </div>
       <div className="chat-history__list">
         {sessions.length === 0 ? (
           <div className="chat-history__empty">暂无历史会话</div>

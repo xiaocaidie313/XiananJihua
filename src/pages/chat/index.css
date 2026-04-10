@@ -1,14 +1,17 @@
 .chat-page {
   height: calc(100vh - 64px - 20px - 40px);
+  min-height: 0;
   display: flex;
   justify-content: center;
   padding: 8px 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .chat-layout {
   width: min(100%, 1320px);
   flex: 1;
+  height: 100%;
   min-height: 0;
   display: flex;
   overflow: hidden;
