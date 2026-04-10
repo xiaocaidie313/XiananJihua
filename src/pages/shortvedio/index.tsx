@@ -3,9 +3,11 @@ import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/co
 import type { ResponseComment, RootComments } from '@/constants/content'
 import type { RootComment } from '@/constants/content'
 import { useVideos } from '@/hooks/useVideos'
-import { getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
+import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './index.css'
+
+const DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'
 
 interface VideoProgressState {
   currentTime: number
@@ -40,6 +42,36 @@ function ShortVideo() {
   const [publishLoading, setPublishLoading] = useState(false)
   const [actionFeedback, setActionFeedback] = useState('')
   const currentUserId = getCurrentUserId()
+  const [currentUser, setCurrentUser] = useState(getStoredUser())
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(getStoredUser())
+    window.addEventListener(USER_UPDATED_EVENT, syncUser)
+    window.addEventListener('storage', syncUser)
+    return () => {
+      window.removeEventListener(USER_UPDATED_EVENT, syncUser)
+      window.removeEventListener('storage', syncUser)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!currentUserId || !currentUser) return
+    setCommentsMap((prev) => {
+      const nextEntries = Object.entries(prev).map(([videoId, list]) => [
+        videoId,
+        list.map((item) =>
+          item.user_id === currentUserId
+            ? {
+                ...item,
+                nickname: currentUser.name || item.nickname,
+                avatar: currentUser.avatar || DEFAULT_AVATAR,
+              }
+            : item,
+        ),
+      ])
+      return Object.fromEntries(nextEntries) as Record<number, RootComment[]>
+    })
+  }, [currentUser, currentUserId])
 
   const formatCommentTime = (ts: number) => {
     const ms = timestampToMs(ts)
@@ -252,7 +284,7 @@ function ShortVideo() {
         reply_user_id: 0,
         status: 0,
         user_name: user?.name ?? '',
-        avatar:'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png' ,
+        avatar: user?.avatar || DEFAULT_AVATAR,
       })
       setCommentInput('')
       const data = unwrapResponse(res) as ResponseComment
@@ -263,7 +295,7 @@ function ShortVideo() {
         user_id: currentUserId,
         nickname: user?.name ?? '我',
         // ?? 只会判断 unll 或 undefined 我这个是空字符串 sb Ai
-        avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+        avatar: user?.avatar || DEFAULT_AVATAR,
         ip_location: '',
         content: text,
         sub_comment_count: 0,
@@ -369,7 +401,9 @@ function ShortVideo() {
                     }}
                     onError={(e) => {
                       const el = e.currentTarget
-                      el.error && console.warn('视频加载失败:', vedio.url, el.error.message)
+                      if (el.error) {
+                        console.warn('视频加载失败:', vedio.url, el.error.message)
+                      }
                     }}
                     onClick={(e) => {
                       e.preventDefault()
@@ -456,10 +490,14 @@ function ShortVideo() {
                         return <div className="shortvideo-comment-placeholder">暂无评论，快来抢沙发吧</div>
                       }
                       return list.map((item, idx) => {
-                        const name = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户'
+                        const isMe = (item as RootComment).user_id === currentUserId
+                        const rawName = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户'
+                        const name = isMe ? (currentUser?.name || rawName) : rawName
                         const text = (item as RootComment & { comment_text?: string }).content ?? (item as RootComment & { comment_text?: string }).comment_text ?? ''
                         const ts = (item as RootComment & { create_time?: number }).created_at ?? (item as RootComment & { create_time?: number }).create_time ?? 0
-                        const avatar = (item as RootComment).avatar ?? 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'
+                        const avatar = isMe
+                          ? (currentUser?.avatar || (item as RootComment).avatar || DEFAULT_AVATAR)
+                          : ((item as RootComment).avatar || DEFAULT_AVATAR)
                         const itemId = (item as RootComment).id ?? idx
                         return (
                           <div className="shortvideo-comment-item" key={itemId} data-comment-id={itemId}>

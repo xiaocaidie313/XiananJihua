@@ -3,6 +3,7 @@ import type { CommonResponse } from './http'
 
 const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
+export const USER_UPDATED_EVENT = 'xiaoan:user-updated'
 
 export function unwrapResponse<T>(response: CommonResponse<T> | T): T {
   if (response && typeof response === 'object' && 'data' in (response as CommonResponse<T>)) {
@@ -22,7 +23,7 @@ export function getErrorMessage(error: unknown, fallback = 'Request failed, plea
 
 export function saveLoginInfo(payload: LoginSuccess) {
   localStorage.setItem(TOKEN_KEY, payload.token)
-  localStorage.setItem(USER_KEY, JSON.stringify(payload.user))
+  setStoredUser(payload.user)
 }
 
 export function getStoredToken(): string {
@@ -43,6 +44,11 @@ export function getStoredUser(): UserInfo | null {
   }
 }
 
+export function setStoredUser(user: UserInfo) {
+  localStorage.setItem(USER_KEY, JSON.stringify(user))
+  window.dispatchEvent(new CustomEvent(USER_UPDATED_EVENT, { detail: user }))
+}
+
 export function getCurrentUserId(): number {
   const user = getStoredUser()
   return Number(user?.user_id || 0)
@@ -51,6 +57,7 @@ export function getCurrentUserId(): number {
 export function clearLoginInfo() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
+  window.dispatchEvent(new CustomEvent(USER_UPDATED_EVENT, { detail: null }))
 }
 
 /** 将秒或毫秒时间戳统一转为毫秒（<1e12 视为秒） */

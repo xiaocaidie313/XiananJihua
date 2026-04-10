@@ -6,11 +6,12 @@ import { getNewsById } from '@/features/news/newsSlice'
 import { useAppSelector } from '@/store/hooks'
 import type { ArticleInfo, ResponseComment, RootComment, RootComments } from '@/constants/content'
 import { ContentType } from '@/pages/shortvedio'
-import { getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
+import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
 import { useParams } from 'react-router-dom'
 
 /** 独立成行的图片 URL 正则 */
 const IMAGE_LINE_REGEX = /^https?:\/\/[^\s]+\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i
+const DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'
 
 function renderArticleContent(content: string) {
   if (!content) return null
@@ -59,6 +60,7 @@ function News() {
   const [commentInput, setCommentInput] = useState('')
   const [publishLoading, setPublishLoading] = useState(false)
   const commentSectionRef = useRef<HTMLDivElement>(null)
+  const [currentUser, setCurrentUser] = useState(getStoredUser())
 
   const formatCommentTime = (ts: number) => {
     const ms = timestampToMs(ts)
@@ -122,6 +124,31 @@ function News() {
 
   const contentId = article?.article_id ?? articleId
   const userId = getCurrentUserId()
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(getStoredUser())
+    window.addEventListener(USER_UPDATED_EVENT, syncUser)
+    window.addEventListener('storage', syncUser)
+    return () => {
+      window.removeEventListener(USER_UPDATED_EVENT, syncUser)
+      window.removeEventListener('storage', syncUser)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!userId || !currentUser) return
+    setComments((prev) =>
+      prev.map((item) =>
+        item.user_id === userId
+          ? {
+              ...item,
+              nickname: currentUser.name || item.nickname,
+              avatar: currentUser.avatar || DEFAULT_AVATAR,
+            }
+          : item,
+      ),
+    )
+  }, [currentUser, userId])
 
   const handleLike = useCallback(async () => {
     if (!userId) {
@@ -212,7 +239,7 @@ function News() {
         reply_user_id: 0,
         status: 0,
         user_name: user?.name || '',
-        avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+        avatar: user?.avatar || DEFAULT_AVATAR,
       })
       setCommentInput('')
       const data = unwrapResponse(res) as ResponseComment
@@ -222,7 +249,7 @@ function News() {
         target_id: contentId,
         user_id: userId,
         nickname: user?.name ?? '我',
-        avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+        avatar: user?.avatar || DEFAULT_AVATAR,
         ip_location: '',
         content: text,
         sub_comment_count: 0,
@@ -333,12 +360,15 @@ function News() {
                 <div style={{ padding: '24px', textAlign: 'center', color: '#909090' }}>暂无评论，快来抢沙发吧</div>
               ) : (
                 comments.map((item) => {
-                  const name = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户'
+                  const isMe = item.user_id === userId
+                  const rawName = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户'
+                  const name = isMe ? (currentUser?.name || rawName) : rawName
                   const text = (item as RootComment & { comment_text?: string }).content ?? (item as RootComment & { comment_text?: string }).comment_text ?? ''
                   const ts = (item as RootComment & { create_time?: number }).created_at ?? (item as RootComment & { create_time?: number }).create_time ?? 0
+                  const avatarUrl = isMe ? (currentUser?.avatar || item.avatar || DEFAULT_AVATAR) : (item.avatar || DEFAULT_AVATAR)
                   return (
                     <div key={item.id} style={{ display: 'flex', gap: '12px' }}>
-                      <Avatar src={item.avatar} icon={!item.avatar ? <UserOutlined /> : undefined} size={32} />
+                      <Avatar src={avatarUrl} icon={!avatarUrl ? <UserOutlined /> : undefined} size={32} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: '13px', color: '#606060', marginBottom: '4px' }}>
                           {name} · {formatCommentTime(ts)}

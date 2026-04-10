@@ -13,7 +13,7 @@ import {
 import { getUserInfo, updateUserInfo } from '@/api/auth'
 import { uploadAvatar } from '@/utils/oss'
 import type { UserInfo } from '@/constants/auth'
-import { clearLoginInfo, getCurrentUserId, getErrorMessage, getStoredUser, unwrapResponse } from '@/utils/appState'
+import { clearLoginInfo, getCurrentUserId, getErrorMessage, getStoredUser, setStoredUser, unwrapResponse } from '@/utils/appState'
 import { useLocation, useNavigate } from 'react-router-dom'
 import './index.css'
 
@@ -66,7 +66,7 @@ function Me() {
 
       const nextUser = typeof data === 'object' && 'user' in data ? data.user : data
       setUser(nextUser)
-      localStorage.setItem('user', JSON.stringify(nextUser))
+      setStoredUser(nextUser)
       setFeedback('')
     } catch (error) {
       console.log(error)
@@ -144,12 +144,12 @@ function Me() {
         : (data as UserInfo | null)
       if (nextUser) {
         setUser(nextUser)
-        localStorage.setItem('user', JSON.stringify(nextUser))
+        setStoredUser(nextUser)
       } else if (user) {
         const merged = { ...user, name, phone, department } as UserInfo
         if (editAvatarUrl) merged.avatar = editAvatarUrl
         setUser(merged)
-        localStorage.setItem('user', JSON.stringify(merged))
+        setStoredUser(merged)
       }
       setFeedback('资料已更新')
       setEditModalOpen(false)

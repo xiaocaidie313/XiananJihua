@@ -14,8 +14,10 @@ import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/co
 import { ContentType } from '@/pages/shortvedio';
 import type { RootComment, RootComments } from '@/constants/content';
 import type { ResponseComment } from '@/constants/content';
-import { getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState';
+import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState';
 import './index.css';
+
+const   DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png';
 
 function Vedios() {
     const navigate = useNavigate();
@@ -32,7 +34,33 @@ function Vedios() {
     const [actionFeedback, setActionFeedback] = useState('');
     const [videoError, setVideoError] = useState<string | null>(null);
     const currentUserId = getCurrentUserId();
+    const [currentUser, setCurrentUser] = useState(getStoredUser());
     const recommendVedios = allVedios.filter(item => item.video_id !== videoId).slice(0, 5);
+
+    useEffect(() => {
+        const syncUser = () => setCurrentUser(getStoredUser());
+        window.addEventListener(USER_UPDATED_EVENT, syncUser);
+        window.addEventListener('storage', syncUser);
+        return () => {
+            window.removeEventListener(USER_UPDATED_EVENT, syncUser);
+            window.removeEventListener('storage', syncUser);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!currentUserId || !currentUser) return;
+        setComments((prev) =>
+            prev.map((item) =>
+                item.user_id === currentUserId
+                    ? {
+                        ...item,
+                        nickname: currentUser.name || item.nickname,
+                        avatar: currentUser.avatar || DEFAULT_AVATAR,
+                    }
+                    : item,
+            ),
+        );
+    }, [currentUser, currentUserId]);
 
     const formatCommentTime = (ts: number) => {
         const ms = timestampToMs(ts);
@@ -121,7 +149,7 @@ function Vedios() {
                 reply_user_id: 0,
                 status: 0,
                 user_name: user?.name || '',
-                avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+                avatar: user?.avatar || DEFAULT_AVATAR,
             });
             setCommentInput('');
             const data = unwrapResponse(res) as ResponseComment;
@@ -131,7 +159,7 @@ function Vedios() {
                 target_id: videoId,
                 user_id: currentUserId,
                 nickname: user?.name ?? '我',
-                avatar: user?.avatar || 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png',
+                avatar: user?.avatar || DEFAULT_AVATAR,
                 ip_location: '',
                 content: text,
                 sub_comment_count: 0,
@@ -319,14 +347,17 @@ function Vedios() {
                                     <div style={{ padding: '24px', textAlign: 'center', color: '#909090' }}>暂无评论，快来抢沙发吧</div>
                                 ) : (
                                     comments.map((item) => {
-                                        const name = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户';
+                                        const isMe = item.user_id === currentUserId;
+                                        const rawName = (item as RootComment & { user_name?: string }).nickname ?? (item as RootComment & { user_name?: string }).user_name ?? '用户';
+                                        const name = isMe ? (currentUser?.name || rawName) : rawName;
                                         const text = (item as RootComment & { comment_text?: string }).content ?? (item as RootComment & { comment_text?: string }).comment_text ?? '';
                                         const ts = (item as RootComment & { create_time?: number }).created_at ?? (item as RootComment & { create_time?: number }).create_time ?? 0;
+                                        const avatarUrl = isMe ? (currentUser?.avatar || item.avatar || DEFAULT_AVATAR) : (item.avatar || DEFAULT_AVATAR);
                                         return (
                                             <div key={item.id} style={{ display: 'flex', gap: '12px' }}>
                                                 <Avatar
-                                                    src={item.avatar}
-                                                    icon={!item.avatar ? <UserOutlined /> : undefined}
+                                                    src={avatarUrl}
+                                                    icon={!avatarUrl ? <UserOutlined /> : undefined}
                                                     size={32}
                                                 />
                                                 <div style={{ flex: 1, minWidth: 0 }}>
