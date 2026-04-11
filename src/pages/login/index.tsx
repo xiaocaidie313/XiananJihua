@@ -5,9 +5,10 @@ import {
   MailOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons'
-import { login, register, sendEmailCode } from '@/api/auth'
+import { getUserInfo, login, register, sendEmailCode } from '@/api/auth'
 import { LoginType } from '@/constants/auth'
-import { getErrorMessage, saveLoginInfo, unwrapResponse } from '@/utils/appState'
+import type { UserInfo } from '@/constants/auth'
+import { getErrorMessage, saveLoginInfo, setStoredUser, unwrapResponse } from '@/utils/appState'
 import { useNavigate } from 'react-router-dom'
 import './index.css'
 
@@ -73,6 +74,18 @@ function LoginPage() {
         return
       }
       saveLoginInfo(data)
+
+      try {
+        const infoRes = await getUserInfo({ user_id: data.user.user_id })
+        const infoData = unwrapResponse<UserInfo | { user: UserInfo } | null>(infoRes)
+        if (infoData) {
+          const fullUser = typeof infoData === 'object' && 'user' in infoData ? infoData.user : infoData
+          setStoredUser(fullUser)
+        }
+      } catch {
+        // getUserInfo 失败不影响登录流程
+      }
+
       setFeedback('登录成功，正在跳转个人中心')
       window.setTimeout(() => navigate('/me', { replace: true, state: { justLoggedIn: true } }), 500)
     } catch (error) {
@@ -180,6 +193,7 @@ function LoginPage() {
                     placeholder="请输入邮箱"
                     value={loginForm.email}
                     onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && !loading && void handleLogin()}
                     className="login-field__input"
                   />
                 </div>
@@ -193,6 +207,7 @@ function LoginPage() {
                     placeholder="请输入密码"
                     value={loginForm.password}
                     onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && !loading && void handleLogin()}
                     className="login-field__input"
                   />
                 </div>
@@ -263,6 +278,7 @@ function LoginPage() {
                     placeholder="设置登录密码"
                     value={registerForm.password}
                     onChange={(event) => setRegisterForm((prev) => ({ ...prev, password: event.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && !loading && void handleRegister()}
                     className="login-field__input"
                   />
                 </div>

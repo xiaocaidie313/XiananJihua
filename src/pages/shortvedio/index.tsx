@@ -4,7 +4,7 @@ import type { ResponseComment, RootComments } from '@/constants/content'
 import type { RootComment } from '@/constants/content'
 import { useVideos } from '@/hooks/useVideos'
 import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import './index.css'
 
 const DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'
@@ -43,6 +43,8 @@ function ShortVideo() {
   const [actionFeedback, setActionFeedback] = useState('')
   const currentUserId = getCurrentUserId()
   const [currentUser, setCurrentUser] = useState(getStoredUser())
+  const tapTimerRef = useRef<Record<number, number>>({})
+  const [floatingHearts, setFloatingHearts] = useState<{ id: number; vid: number; x: number; y: number }[]>([])
 
   useEffect(() => {
     const syncUser = () => setCurrentUser(getStoredUser())
@@ -193,7 +195,7 @@ function ShortVideo() {
     }
   }, [currentUserId, isLikedMap])
 
-  const handleTogglePlayback = (videoId: number) => {
+  const handleTogglePlayback = useCallback((videoId: number) => {
     const videoEl = videoRefs.current[videoId]
 
     if (!videoEl) {
@@ -207,7 +209,6 @@ function ShortVideo() {
           [videoId]: false,
         }))
       }).catch((err) => {
-        // AbortError: 用户切换视频时中断，NotSupportedError: 视频格式不支持或加载失败
         if (err?.name !== 'AbortError' && err?.name !== 'NotSupportedError') {
           console.warn('视频播放失败:', err)
         }
@@ -219,7 +220,26 @@ function ShortVideo() {
         [videoId]: true,
       }))
     }
-  }
+  }, [])
+
+  const handleVideoTap = useCallback((vid: number, e: ReactMouseEvent) => {
+    const now = Date.now()
+    const lastTap = tapTimerRef.current[vid] || 0
+
+    if (now - lastTap < 300) {
+      tapTimerRef.current[vid] = 0
+      if (!isLikedMap[vid]) {
+        void handleToggleLike(vid)
+      }
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      const heartId = now
+      setFloatingHearts((prev) => [...prev, { id: heartId, vid, x: e.clientX - rect.left, y: e.clientY - rect.top }])
+      setTimeout(() => setFloatingHearts((prev) => prev.filter((h) => h.id !== heartId)), 800)
+    } else {
+      tapTimerRef.current[vid] = now
+      handleTogglePlayback(vid)
+    }
+  }, [isLikedMap, handleToggleLike, handleTogglePlayback])
 
   const fetchComments = useCallback(async (videoId: number) => {
     setCommentsLoading(true)
@@ -408,9 +428,14 @@ function ShortVideo() {
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
-                      handleTogglePlayback(vid)
+                      handleVideoTap(vid, e)
                     }}
                   />
+                  {floatingHearts.filter((h) => h.vid === vid).map((h) => (
+                    <span key={h.id} className="shortvideo-dbllike-heart" style={{ left: h.x, top: h.y }}>
+                      <HeartFilled />
+                    </span>
+                  ))}
                 </div>
                 <div className="shortvideo-overlay shortvideo-overlay--bottom">
                     {actionFeedback && isActive ? (

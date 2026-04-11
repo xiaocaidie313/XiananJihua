@@ -70,7 +70,7 @@ export const del = <T>(url: string, params?: unknown, config?: RequestConfig): P
 
 /** 上传文件（FormData，不设置 Content-Type） */
 export const postForm = <T>(url: string, data: FormData, config?: RequestConfig): Promise<T> => {
-  const token = localStorage.getItem('token')
+  const token =localStorage.getItem('token')
   return axios<T>({
     baseURL,
     url,

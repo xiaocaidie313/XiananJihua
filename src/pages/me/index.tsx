@@ -135,19 +135,27 @@ function Me() {
       const values = await form.validateFields()
       setEditLoading(true)
       const { name, phone, department } = values
-      const params: Record<string, unknown> = { name, phone, department }
-      if (editAvatarUrl) params.avatar = editAvatarUrl
+      const params: Record<string, unknown> = {
+        name,
+        phone,
+        department,
+        avatar: editAvatarUrl || user?.avatar || '',
+      }
+      console.log('[修改资料] 提交参数:', JSON.stringify(params))
       const response = await updateUserInfo(params)
+      console.log('response', response)
+      console.log('[修改资料] 接口返回:', JSON.stringify(response))
       const data = unwrapResponse(response)
       const nextUser = data && typeof data === 'object' && 'user' in data
         ? (data as { user: UserInfo }).user
         : (data as UserInfo | null)
       if (nextUser) {
+        if (!nextUser.avatar && editAvatarUrl) nextUser.avatar = editAvatarUrl
         setUser(nextUser)
         setStoredUser(nextUser)
       } else if (user) {
         const merged = { ...user, name, phone, department } as UserInfo
-        if (editAvatarUrl) merged.avatar = editAvatarUrl
+        merged.avatar = editAvatarUrl || user.avatar || ''
         setUser(merged)
         setStoredUser(merged)
       }

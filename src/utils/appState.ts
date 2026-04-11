@@ -3,6 +3,7 @@ import type { CommonResponse } from './http'
 
 const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
+const PROFILE_BACKUP_PREFIX = 'xiaoan:profile:'
 export const USER_UPDATED_EVENT = 'xiaoan:user-updated'
 
 export function unwrapResponse<T>(response: CommonResponse<T> | T): T {
@@ -19,6 +20,31 @@ export function getErrorMessage(error: unknown, fallback = 'Request failed, plea
   }
 
   return fallback
+}
+
+function saveProfileBackup(user: UserInfo) {
+  if (!user.user_id) return
+  const backup: Record<string, string> = {}
+  if (user.avatar) backup.avatar = user.avatar
+  if (user.name) backup.name = user.name
+  if (Object.keys(backup).length > 0) {
+    localStorage.setItem(PROFILE_BACKUP_PREFIX + user.user_id, JSON.stringify(backup))
+  }
+}
+
+function applyProfileBackup(user: UserInfo): UserInfo {
+  if (!user.user_id) return user
+  const raw = localStorage.getItem(PROFILE_BACKUP_PREFIX + user.user_id)
+  if (!raw) return user
+  try {
+    const backup = JSON.parse(raw) as Record<string, string>
+    const patched = { ...user }
+    if (!patched.avatar && backup.avatar) patched.avatar = backup.avatar
+    if (!patched.name && backup.name) patched.name = backup.name
+    return patched
+  } catch {
+    return user
+  }
 }
 
 export function saveLoginInfo(payload: LoginSuccess) {
@@ -45,8 +71,10 @@ export function getStoredUser(): UserInfo | null {
 }
 
 export function setStoredUser(user: UserInfo) {
-  localStorage.setItem(USER_KEY, JSON.stringify(user))
-  window.dispatchEvent(new CustomEvent(USER_UPDATED_EVENT, { detail: user }))
+  const merged = applyProfileBackup(user)
+  saveProfileBackup(merged)
+  localStorage.setItem(USER_KEY, JSON.stringify(merged))
+  window.dispatchEvent(new CustomEvent(USER_UPDATED_EVENT, { detail: merged }))
 }
 
 export function getCurrentUserId(): number {
