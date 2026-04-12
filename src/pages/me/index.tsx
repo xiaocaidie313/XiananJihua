@@ -138,7 +138,7 @@ function Me() {
       const params: Record<string, unknown> = {
         name,
         phone,
-        department,
+        user_id: user?.user_id,
         avatar: editAvatarUrl || user?.avatar || '',
       }
       console.log('[修改资料] 提交参数:', JSON.stringify(params))

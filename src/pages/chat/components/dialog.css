@@ -1,0 +1,143 @@
+.chat-md {
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: break-word;
+}
+
+.chat-md-placeholder {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #94a3b8;
+}
+
+.chat-md > :first-child {
+  margin-top: 0;
+}
+
+.chat-md > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-md p {
+  margin: 0 0 8px;
+}
+
+.chat-md p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-md h1,
+.chat-md h2,
+.chat-md h3,
+.chat-md h4 {
+  margin: 16px 0 8px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.chat-md h1 { font-size: 1.3em; }
+.chat-md h2 { font-size: 1.15em; }
+.chat-md h3 { font-size: 1.05em; }
+
+.chat-md strong {
+  font-weight: 700;
+}
+
+.chat-md em {
+  font-style: italic;
+}
+
+.chat-md ul,
+.chat-md ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.chat-md li {
+  margin: 3px 0;
+}
+
+.chat-md li > p {
+  margin: 0;
+}
+
+.chat-md blockquote {
+  margin: 8px 0;
+  padding: 4px 12px;
+  border-left: 3px solid #cbd5e1;
+  color: #64748b;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 0 6px 6px 0;
+}
+
+.chat-md blockquote p {
+  margin: 0;
+}
+
+.chat-md code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.88em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #d63384;
+}
+
+.chat-md pre {
+  margin: 10px 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #1e293b;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.chat-md pre code {
+  display: block;
+  padding: 0;
+  background: none;
+  color: #e2e8f0;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre;
+  border-radius: 0;
+}
+
+.chat-md a {
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.chat-md a:hover {
+  text-decoration: underline;
+}
+
+.chat-md hr {
+  margin: 12px 0;
+  border: none;
+  border-top: 1px solid #e2e8f0;
+}
+
+.chat-md table {
+  margin: 8px 0;
+  border-collapse: collapse;
+  font-size: 13px;
+  width: 100%;
+}
+
+.chat-md th,
+.chat-md td {
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.chat-md th {
+  background: rgba(0, 0, 0, 0.03);
+  font-weight: 600;
+}
+
+.chat-md img {
+  max-width: 100%;
+  border-radius: 8px;
+}

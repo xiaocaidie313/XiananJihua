@@ -78,7 +78,7 @@ export const postForm = <T>(url: string, data: FormData, config?: RequestConfig)
     data,
     timeout: config?.timeout,
     headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token ? { Authorization: `${token}` } : {}),
       ...config?.header,
     },
   }).then((res) => res.data)
