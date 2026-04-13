@@ -42,9 +42,11 @@ function Me() {
   const displayPhone = user?.phone || '未填写手机号'
 
   const loadUser = async () => {
+    console.log('我是用户 loadUser')
     const cachedUser = getStoredUser()
+    console.log('我是用户 cachedUser', cachedUser)
     const userId = getCurrentUserId()
-
+    console.log('我是用户 userId', userId)
     if (!userId) {
       setUser(cachedUser)
       if (!cachedUser) {
@@ -56,15 +58,15 @@ function Me() {
     try {
       setLoading(true)
       const response = await getUserInfo({ user_id: userId })
-      const data = unwrapResponse<UserInfo | { user: UserInfo } | null>(response)
-
-      if (!data) {
+      const data = unwrapResponse<{ user_info: UserInfo } | null>(response)
+      console.log('我是用户 data', data)
+      if (!data?.user_info) {
         setUser(cachedUser)
         setFeedback(cachedUser ? '用户详情接口暂时为空，当前先展示本地登录信息' : '当前账号暂无可展示的用户资料')
         return
       }
 
-      const nextUser = typeof data === 'object' && 'user' in data ? data.user : data
+      const nextUser = data?.user_info 
       setUser(nextUser)
       setStoredUser(nextUser)
       setFeedback('')
@@ -130,6 +132,7 @@ function Me() {
     setAvatarError('')
   }
 
+  // 修改资料
   const handleEditSubmit = async () => {
     try {
       const values = await form.validateFields()
@@ -168,7 +171,7 @@ function Me() {
       setEditLoading(false)
     }
   }
-
+  //@todo 后面拓展？ 
   const menuItems = useMemo(() => {
     return [
       {
@@ -258,11 +261,11 @@ function Me() {
           </div>
           <div className="me-profile-stat-card">
             <span className="me-profile-stat-card__label">邀请码</span>
-            <strong>{user?.invite_code_used || '-'}</strong>
+            <strong>{user?.invite_code_used ?? '-'}</strong>
           </div>
           <div className="me-profile-stat-card">
             <span className="me-profile-stat-card__label">班级 ID</span>
-            <strong>{user?.class_id || '-'}</strong>
+            <strong>{user?.class_id ?? '-'}</strong>
           </div>
         </div>
 
@@ -418,11 +421,11 @@ function Me() {
           <div className="surface-card" style={{ padding: '22px' }}>
             <div className="section-title" style={{ fontSize: '18px', marginBottom: '16px' }}>资料信息</div>
             <div className="info-stack">
-              <div className="info-row"><strong>部门</strong><span>{user?.department || '-'}</span></div>
+              <div className="info-row"><strong>部门</strong><span>{user?.department ?? '-'}</span></div>
               <div className="info-row"><strong>手机号</strong><span>{displayPhone}</span></div>
-              <div className="info-row"><strong>用户 ID</strong><span>{user?.user_id || '-'}</span></div>
-              <div className="info-row"><strong>班级 ID</strong><span>{user?.class_id || '-'}</span></div>
-              <div className="info-row"><strong>邀请码</strong><span>{user?.invite_code_used || '-'}</span></div>
+              <div className="info-row"><strong>用户 ID</strong><span>{user?.user_id ?? '-'}</span></div>
+              <div className="info-row"><strong>班级 ID</strong><span>{user?.class_id ?? '-'}</span></div>
+              <div className="info-row"><strong>邀请码</strong><span>{user?.invite_code_used ?? '-'}</span></div>
             </div>
           </div>
         </aside>

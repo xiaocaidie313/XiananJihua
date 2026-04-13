@@ -77,9 +77,9 @@ function LoginPage() {
 
       try {
         const infoRes = await getUserInfo({ user_id: data.user.user_id })
-        console.log('infoRes', infoRes)
         const infoData = unwrapResponse<UserInfo | { user: UserInfo } | null>(infoRes)
         if (infoData) {
+          // 这里没用 data{ user_info:{ ... }
           const fullUser = typeof infoData === 'object' && 'user' in infoData ? infoData.user : infoData
           setStoredUser(fullUser)
         }

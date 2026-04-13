@@ -6,6 +6,16 @@ const USER_KEY = 'user'
 const PROFILE_BACKUP_PREFIX = 'xiaoan:profile:'
 export const USER_UPDATED_EVENT = 'xiaoan:user-updated'
 
+export function unwarpOuterObj<T>( obj :T): object {
+  if( typeof obj === "object" && obj ) {
+    console.log('我是用户 unwarpOuterObj', obj)
+    const result = { ...obj } as object
+    console.log('我是用户 result', result)
+    return result
+  }
+  return {} as object
+}
+
 export function unwrapResponse<T>(response: CommonResponse<T> | T): T {
   if (response && typeof response === 'object' && 'data' in (response as CommonResponse<T>)) {
     return (response as CommonResponse<T>).data
@@ -63,8 +73,8 @@ export function getStoredUser(): UserInfo | null {
     return null
   }
 
-  try {
-    return JSON.parse(user) as UserInfo
+  try { 
+    return JSON.parse(user)['user_info'] as UserInfo
   } catch {
     return null
   }

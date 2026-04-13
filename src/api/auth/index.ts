@@ -48,7 +48,7 @@ export const getInviteCode = (params: GetInviteCodeParams) => {
 
 /** 获取用户信息 */
 export const getUserInfo = (params: GetUserInfoParams) => {
-  return instance.get<CommonResponse<UserInfo>>('/api/auth/get-user-info', params)
+  return instance.get<CommonResponse<{ user_info: UserInfo }>>('/api/auth/get-user-info', params)
 }
 
 /** 修改用户信息 */
