@@ -7,6 +7,7 @@ import Chat from './pages/chat'
 import Home from './pages/home'
 import LoginPage from './pages/login'
 import Me from './pages/me'
+import UserPublicPage from './pages/user'
 import ArticlePage from './pages/article'
 import News from './pages/news'
 import Podcast from './pages/podcast'
@@ -75,6 +76,7 @@ function App() {
               <Route path="/article" element={<ArticlePage />} />
               <Route path="/news/:id" element={<News />} />
               <Route path="/me" element={<Me />} />
+              <Route path="/user/:userId" element={<UserPublicPage />} />
               <Route path="/shortvideo" element={<ShortVideo />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/vedios/:id" element={<Vedios />} />

@@ -1,0 +1,33 @@
+.user-public-page {
+  position: relative;
+}
+
+.user-public-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.user-public-back:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.user-public-loading,
+.user-public-error {
+  padding: 48px 24px;
+  text-align: center;
+  color: #64748b;
+}
+
+.user-public-error {
+  color: #ef4444;
+}

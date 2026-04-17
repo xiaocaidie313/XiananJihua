@@ -9,12 +9,13 @@ import {
 import image from '@/assets/images/carousel/01.jpg';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useVideo, useVideos } from '@/hooks/useVideos';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/content';
 import { ContentType } from '@/pages/shortvedio';
 import type { RootComment, RootComments } from '@/constants/content';
 import type { ResponseComment } from '@/constants/content';
 import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState';
+import { getVideoCreatorUserId } from '@/utils/contentUser';
 import './index.css';
 
 const   DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png';
@@ -190,6 +191,13 @@ function Vedios() {
 
     if (!vedio) return <div style={{ color: '#334155', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
 
+    const creatorId = getVideoCreatorUserId(vedio);
+    const goCreatorProfile = (e: ReactMouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (creatorId) navigate(`/user/${creatorId}`);
+    };
+
     return (
         <div className="page-shell">
             <div className="yt-watch-layout">
@@ -251,36 +259,59 @@ function Vedios() {
                             flexWrap: 'wrap',
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                <div style={{ position: 'relative' }}>
-                                    <Avatar
-                                        size={46}
-                                        icon={<UserOutlined />}
-                                        style={{
-                                            border: '2px solid white',
-                                            boxShadow: '0 10px 24px rgba(15, 23, 42, 0.12)',
-                                        }}
-                                        src={'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'}
-                                    />
-                                    <div style={{
-                                        position: 'absolute',
-                                        bottom: '-4px',
-                                        right: '-2px',
-                                        backgroundColor: '#ff0033',
-                                        borderRadius: '50%',
-                                        width: '20px',
-                                        height: '20px',
+                                <div
+                                    style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: 'white',
-                                        fontSize: '11px',
-                                    }}>
-                                        <PlusOutlined />
+                                        gap: '14px',
+                                        ...(creatorId ? { cursor: 'pointer' as const } : {}),
+                                    }}
+                                    onClick={creatorId ? goCreatorProfile : undefined}
+                                    onKeyDown={
+                                        creatorId
+                                            ? (e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    navigate(`/user/${creatorId}`);
+                                                }
+                                            }
+                                            : undefined
+                                    }
+                                    role={creatorId ? 'button' : undefined}
+                                    tabIndex={creatorId ? 0 : undefined}
+                                >
+                                    <div style={{ position: 'relative' }}>
+                                        <Avatar
+                                            size={46}
+                                            icon={<UserOutlined />}
+                                            style={{
+                                                border: '2px solid white',
+                                                boxShadow: '0 10px 24px rgba(15, 23, 42, 0.12)',
+                                            }}
+                                            src={'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'}
+                                        />
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '-4px',
+                                            right: '-2px',
+                                            backgroundColor: '#ff0033',
+                                            borderRadius: '50%',
+                                            width: '20px',
+                                            height: '20px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: 'white',
+                                            fontSize: '11px',
+                                        }}>
+                                            <PlusOutlined />
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f0f0f' }}>{vedio.author}</div>
-                                    <div style={{ marginTop: '4px', fontSize: '13px', color: '#606060' }}>12.8万位订阅者</div>
+                                    <div>
+                                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f0f0f' }}>{vedio.author}</div>
+                                        <div style={{ marginTop: '4px', fontSize: '13px', color: '#606060' }}>12.8万位订阅者</div>
+                                    </div>
                                 </div>
                                 <button
                                     style={{

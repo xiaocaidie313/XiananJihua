@@ -2,11 +2,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import type { VideoItem } from '@/api/content/types';
 import { timestampToMs } from '@/utils/appState';
+import { getVideoCreatorUserId } from '@/utils/contentUser';
 
 function VedioCardOutLine({ vedio }: { vedio: VideoItem }) {
   const { video_id, name, author, cover, published_at } = vedio;
   const navigate = useNavigate();
   const location = useLocation();
+  const creatorId = getVideoCreatorUserId(vedio);
   const d = published_at ? new Date(timestampToMs(published_at)) : new Date();
   const publishedText = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -80,7 +82,13 @@ function VedioCardOutLine({ vedio }: { vedio: VideoItem }) {
             fontSize: '14px',
             fontWeight: 700,
             color: '#0f0f0f',
+            cursor: creatorId ? 'pointer' : 'default',
           }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (creatorId) navigate(`/user/${creatorId}`);
+          }}
+          title={creatorId ? `${author ?? ''}的主页` : undefined}
         >
           {(author ?? '').slice(0, 1)}
         </div>

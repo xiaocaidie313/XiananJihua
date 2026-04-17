@@ -7,7 +7,8 @@ import { useAppSelector } from '@/store/hooks'
 import type { ArticleInfo, ResponseComment, RootComment, RootComments } from '@/constants/content'
 import { ContentType } from '@/pages/shortvedio'
 import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getArticleCreatorUserId } from '@/utils/contentUser'
 
 /** 独立成行的图片 URL 正则 */
 const IMAGE_LINE_REGEX = /^https?:\/\/[^\s]+\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i
@@ -44,6 +45,7 @@ function renderArticleContent(content: string) {
 }
 
 function News() {
+  const navigate = useNavigate()
   const { id } = useParams()
   const articleId = Number(id)
   const fallbackNews = useAppSelector((state) => getNewsById(state, articleId))
@@ -269,6 +271,8 @@ function News() {
     commentSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
+  const authorUserId = useMemo(() => getArticleCreatorUserId(article), [article])
+
   const contentState = useMemo(() => {
     if (article) {
       const publishedAt = article.published_at ? new Date(timestampToMs(article.published_at)) : null
@@ -326,11 +330,41 @@ function News() {
                 {error}
               </div>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                marginBottom: '24px',
+                ...(authorUserId ? { cursor: 'pointer' as const } : {}),
+              }}
+              onClick={
+                authorUserId
+                  ? () => {
+                      navigate(`/user/${authorUserId}`)
+                    }
+                  : undefined
+              }
+              onKeyDown={
+                authorUserId
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        navigate(`/user/${authorUserId}`)
+                      }
+                    }
+                  : undefined
+              }
+              role={authorUserId ? 'button' : undefined}
+              tabIndex={authorUserId ? 0 : undefined}
+              title={authorUserId ? `查看作者「${contentState.author}」主页` : undefined}
+            >
               <Avatar size={56} icon={<UserOutlined />} style={{ backgroundColor: '#8b5cf6' }} />
               <div>
                 <div style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>{contentState.author}</div>
-                <div style={{ marginTop: '6px', fontSize: '13px', color: '#94a3b8' }}>青少年安全与陪伴专栏</div>
+                <div style={{ marginTop: '6px', fontSize: '13px', color: '#94a3b8' }}>
+                  {authorUserId ? '点击查看作者主页 · 青少年安全与陪伴专栏' : '青少年安全与陪伴专栏'}
+                </div>
               </div>
             </div>
 

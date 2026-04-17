@@ -35,6 +35,9 @@ export interface ArticleSummary {
   view_count: number
   collect_count: number
   comment_count: number
+  /** 作者用户 ID，接口若返回则优先用于跳转个人主页 */
+  user_id?: number
+  author_id?: number
   last_modified_by: number
   relation_status: number
 }

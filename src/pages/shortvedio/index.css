@@ -135,6 +135,24 @@
   font-weight: 700;
 }
 
+.shortvideo-author.is-clickable,
+.shortvideo-author-avatar.is-clickable {
+  cursor: pointer;
+}
+
+.shortvideo-author.is-clickable:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.shortvideo-author-avatar.is-clickable {
+  transition: transform 0.15s ease;
+}
+
+.shortvideo-author-avatar.is-clickable:hover {
+  transform: scale(1.04);
+}
+
 .shortvideo-title {
   font-size: 15px;
   line-height: 1.6;

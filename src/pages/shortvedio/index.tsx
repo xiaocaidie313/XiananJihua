@@ -4,7 +4,9 @@ import type { ResponseComment, RootComments } from '@/constants/content'
 import type { RootComment } from '@/constants/content'
 import { useVideos } from '@/hooks/useVideos'
 import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
+import { getVideoCreatorUserId } from '@/utils/contentUser'
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './index.css'
 
 const DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'
@@ -22,6 +24,7 @@ export const ContentType = {
 
 
 function ShortVideo() {
+  const navigate = useNavigate()
   const { vedios, loading, error } = useVideos()
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({})
   const [activeVideoId, setActiveVideoId] = useState<number | null>(vedios[0]?.video_id ?? null)
@@ -390,6 +393,12 @@ function ShortVideo() {
           const isLiked = Boolean(isLikedMap[vid])
           const likeCount = likeCountMap[vid] ?? vedio.like_count ?? 0
           const commentCount = commentCountMap[vid] ?? vedio.comment_count ?? 0
+          const creatorId = getVideoCreatorUserId(vedio)
+          const goCreatorProfile = (e: ReactMouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            if (creatorId) navigate(`/user/${creatorId}`)
+          }
         //   const progress = progressMap[vedio.video_id]
         //   const progressPercent = progress?.duration ? (progress.currentTime / progress.duration) * 100 : 0
           const isCommentOpen = commentVisible && isActive
@@ -442,7 +451,25 @@ function ShortVideo() {
                       <div className="shortvideo-action-feedback">{actionFeedback}</div>
                     ) : null}
                     <div className="shortvideo-meta">
-                      <div className="shortvideo-author">@{vedio.author}</div>
+                      <div
+                        className={`shortvideo-author${creatorId ? ' is-clickable' : ''}`}
+                        onClick={creatorId ? goCreatorProfile : undefined}
+                        onKeyDown={
+                          creatorId
+                            ? (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  navigate(`/user/${creatorId}`)
+                                }
+                              }
+                            : undefined
+                        }
+                        role={creatorId ? 'button' : undefined}
+                        tabIndex={creatorId ? 0 : undefined}
+                      >
+                        @{vedio.author}
+                      </div>
                       <div className="shortvideo-title">{vedio.name}</div>
                       <div className="shortvideo-subtitle">
                         第 {index + 1} 条短视频 · 整个视频完整展示
@@ -450,7 +477,24 @@ function ShortVideo() {
                     </div>
                     {/* // 操作按钮 */}
                     <div className="shortvideo-actions">
-                      <div className="shortvideo-author-avatar" title={vedio.author}>
+                      <div
+                        className={`shortvideo-author-avatar${creatorId ? ' is-clickable' : ''}`}
+                        title={creatorId ? `${vedio.author ?? ''}的主页` : vedio.author}
+                        onClick={creatorId ? goCreatorProfile : undefined}
+                        onKeyDown={
+                          creatorId
+                            ? (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  navigate(`/user/${creatorId}`)
+                                }
+                              }
+                            : undefined
+                        }
+                        role={creatorId ? 'button' : undefined}
+                        tabIndex={creatorId ? 0 : undefined}
+                      >
                         <div className="shortvideo-author-avatar__inner">
                           {(vedio.author ?? '').slice(0, 1)}
                         </div>
