@@ -1,14 +1,21 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { PlayCircleOutlined } from '@ant-design/icons';
+import { Avatar } from 'antd';
+import { PlayCircleOutlined, UserOutlined } from '@ant-design/icons';
 import type { VideoItem } from '@/api/content/types';
+import { useUploaderAvatar } from '@/hooks/useUploaderAvatar';
 import { timestampToMs } from '@/utils/appState';
-import { getVideoCreatorUserId } from '@/utils/contentUser';
+import { getVideoCreatorUserId, pickUploaderAvatarFromContent } from '@/utils/contentUser';
+
+const DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png';
 
 function VedioCardOutLine({ vedio }: { vedio: VideoItem }) {
   const { video_id, name, author, cover, published_at } = vedio;
   const navigate = useNavigate();
   const location = useLocation();
   const creatorId = getVideoCreatorUserId(vedio);
+  const apiAvatar = pickUploaderAvatarFromContent(vedio);
+  const fetchedAvatar = useUploaderAvatar(creatorId, Boolean(apiAvatar));
+  const avatarSrc = apiAvatar || fetchedAvatar || DEFAULT_AVATAR;
   const d = published_at ? new Date(timestampToMs(published_at)) : new Date();
   const publishedText = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -69,29 +76,24 @@ function VedioCardOutLine({ vedio }: { vedio: VideoItem }) {
           gap: '12px',
         }}
       >
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: '#f2f2f2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            fontSize: '14px',
-            fontWeight: 700,
-            color: '#0f0f0f',
-            cursor: creatorId ? 'pointer' : 'default',
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (creatorId) navigate(`/user/${creatorId}`);
-          }}
+        <span
+          style={{ display: 'inline-flex', flexShrink: 0, lineHeight: 0 }}
           title={creatorId ? `${author ?? ''}的主页` : undefined}
         >
-          {(author ?? '').slice(0, 1)}
-        </div>
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
+            src={avatarSrc}
+            style={{
+              flexShrink: 0,
+              cursor: creatorId ? 'pointer' : 'default',
+            }}
+            onClick={(e) => {
+              e?.stopPropagation();
+              if (creatorId) navigate(`/user/${creatorId}`);
+            }}
+          />
+        </span>
         <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div
             style={{

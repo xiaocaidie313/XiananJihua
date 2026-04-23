@@ -1,3 +1,4 @@
+import axios from 'axios'
 import type { LoginSuccess, UserInfo } from '../constants/auth'
 import type { CommonResponse } from './http'
 
@@ -6,6 +7,7 @@ const USER_KEY = 'user'
 const PROFILE_BACKUP_PREFIX = 'xiaoan:profile:'
 export const USER_UPDATED_EVENT = 'xiaoan:user-updated'
 
+/** 专注返回 data 里面的东西 */
 export function unwrapResponse<T>(response: CommonResponse<T> | T): T {
   if (response && typeof response === 'object' && 'data' in (response as CommonResponse<T>)) {
     return (response as CommonResponse<T>).data
@@ -14,9 +16,45 @@ export function unwrapResponse<T>(response: CommonResponse<T> | T): T {
   return response as T
 }
 
-export function getErrorMessage(error: unknown, fallback = 'Request failed, please try again later') {
-  if (error instanceof Error && error.message) {
-    return error.message
+/** 从常见接口/网关错误体中取出可读文案 */
+function pickApiMessageFromBody(data: unknown): string | null {
+  if (data == null) return null
+  if (typeof data === 'string') {
+    const t = data.trim()
+    return t || null
+  }
+  if (typeof data === 'object') {
+    const o = data as Record<string, unknown>
+    const m = o.message ?? o.msg ?? o.error
+    if (typeof m === 'string' && m.trim()) return m.trim()
+  }
+  return null
+}
+
+/** 从统一响应体取 message（用于业务 code !== 0 且 HTTP 仍为 200 等场景） */
+export function getMessageFromApiBody(data: unknown, fallback: string): string {
+  return pickApiMessageFromBody(data) || fallback
+}
+
+export function getErrorMessage(error: unknown, fallback = '操作失败，请稍后再试') {
+  if (axios.isAxiosError(error)) {
+    const fromBody = pickApiMessageFromBody(error.response?.data)
+    if (fromBody) {
+      return fromBody
+    }
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error' || !error.response) {
+      return '网络异常，请检查网络后重试'
+    }
+    return fallback
+  }
+
+  if (error instanceof Error) {
+    if (/^Request failed with status code \d+$/i.test(error.message)) {
+      return fallback
+    }
+    if (error.message) {
+      return error.message
+    }
   }
 
   return fallback
@@ -57,19 +95,18 @@ export function getStoredToken(): string {
 }
 
 export function getStoredUser(): UserInfo | null {
-  const user = localStorage.getItem(USER_KEY)
+  const raw = localStorage.getItem(USER_KEY)
 
-  if (!user) {
+  if (!raw) {
     return null
   }
 
-  try { 
-    if( typeof user === 'object' && user && 'user_info' in user) {
-      return JSON.parse(user)['user_info'] as UserInfo
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    if (parsed.user_info && typeof parsed.user_info === 'object') {
+      return parsed.user_info as UserInfo
     }
-    else{
-      return JSON.parse(user) as UserInfo
-    }
+    return parsed as unknown as UserInfo
   } catch {
     return null
   }
@@ -87,7 +124,7 @@ export function getCurrentUserId(): number {
   if( typeof user === 'object' && user && 'user_info' in user ) {
     return Number((user as { user_info: UserInfo }).user_info?.user_id || 0)
   }
-  return Number(user?.user_id || 0)
+  return Number(user?.user_id ?? 0)
 }
 
 export function clearLoginInfo() {

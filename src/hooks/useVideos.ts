@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getNewVideosList, getVideoContent } from '@/api/content'
 import type { VideoItem } from '@/api/content/types'
+import { readHomeVideosCache, writeHomeVideosCache } from '@/utils/homeFeedCache'
 
-/** 从接口获取视频列表 */
+/** 从接口获取视频列表；session 用于失败兜底与离线感，列表展示仍以首次请求为准避免缓存→接口突变 */
 export function useVideos() {
-  const [vedios, setVedios] = useState<VideoItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const initial = readHomeVideosCache()
+  const [vedios, setVedios] = useState<VideoItem[]>(() => initial)
+  const [loading, setLoading] = useState(() => initial.length === 0)
+  /** 当前挂载实例上，第一次列表请求结束前为 true——用于骨架屏（与缓存是否存在无关） */
+  const [initialPending, setInitialPending] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refetch = useCallback(() => {
@@ -13,6 +17,7 @@ export function useVideos() {
       .then((res: { data?: { videos?: VideoItem[] } }) => {
         const videos = res?.data?.videos ?? []
         setVedios(videos)
+        writeHomeVideosCache(videos)
       })
       .catch((e) => {
         console.log(e)
@@ -22,14 +27,18 @@ export function useVideos() {
 
   useEffect(() => {
     let active = true
-    refetch()
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-    return () => { active = false }
+    refetch().finally(() => {
+      if (active) {
+        setLoading(false)
+        setInitialPending(false)
+      }
+    })
+    return () => {
+      active = false
+    }
   }, [refetch])
 
-  return { vedios, loading, error, refetch }
+  return { vedios, loading, initialPending, error, refetch }
 }
 
 /** 从接口获取单个视频详情 */
@@ -40,11 +49,13 @@ export function useVideo(id: number | null) {
 
   useEffect(() => {
     if (id == null) {
-      setVedio(null)
-      setLoading(false)
+      queueMicrotask(() => {
+        setVedio(null)
+        setLoading(false)
+      })
       return
     }
-    setVedio(null)
+    queueMicrotask(() => setVedio(null))
     let active = true
     getVideoContent(id)
       .then((res: { data?: { video?: VideoItem } }) => {

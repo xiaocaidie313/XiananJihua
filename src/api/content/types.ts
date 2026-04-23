@@ -49,6 +49,9 @@ export interface VideoItem {
     view_count ?: number;
     collect_count ?: number;
     comment_count ?: number;
+    /** 创作者头像 URL（若后端返回） */
+    avatar?: string;
+    author_avatar?: string;
     /** 上传者 / 创作者用户 ID，有则用于跳转个人主页 */
     user_id?: number;
     author_id?: number;

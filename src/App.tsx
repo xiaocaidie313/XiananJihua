@@ -1,6 +1,6 @@
 import Header from './components/header'
 import Sidebar from './components/sidebar'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Cartoon from './pages/cartoon'
 import Chat from './pages/chat'
@@ -17,28 +17,12 @@ import VediosList from './pages/vedios'
 import UploadPage from './pages/upload'
 import Warn from './pages/warn'
 
-const PAGE_TRANSITION_DELAY = 500
-
 function App() {
   const location = useLocation()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [showContent, setShowContent] = useState(true)
-  const isFirstMount = useRef(true)
   const isLoginPage = location.pathname.startsWith('/login')
   const isChatPage = location.pathname.startsWith('/chat')
 
-  useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false
-      return
-    }
-    const hideTimer = setTimeout(() => setShowContent(false), 0)
-    const showTimer = setTimeout(() => setShowContent(true), PAGE_TRANSITION_DELAY)
-    return () => {
-      clearTimeout(hideTimer)
-      clearTimeout(showTimer)
-    }
-  }, [location.pathname])
   // const shouldShowFooter = !location.pathname.startsWith('/chat') && !isLoginPage
   const shouldShowSidebar = !isLoginPage
   const canToggleSidebar = shouldShowSidebar
@@ -57,16 +41,6 @@ function App() {
             className={`app-main${isLoginPage ? ' app-main--login' : ''}${isChatPage ? ' app-main--chat' : ''}`}
             style={{ position: 'relative' }}
           >
-            {!showContent && (
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: '#ffffff',
-                  zIndex: 10,
-                }}
-              />
-            )}
             <Routes> 
               <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/home" element={<Home />} />

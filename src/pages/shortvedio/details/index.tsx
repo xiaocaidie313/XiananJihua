@@ -15,7 +15,8 @@ import { ContentType } from '@/pages/shortvedio';
 import type { RootComment, RootComments } from '@/constants/content';
 import type { ResponseComment } from '@/constants/content';
 import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState';
-import { getVideoCreatorUserId } from '@/utils/contentUser';
+import { getVideoCreatorUserId, pickUploaderAvatarFromContent } from '@/utils/contentUser';
+import { useUploaderAvatar } from '@/hooks/useUploaderAvatar';
 import './index.css';
 
 const   DEFAULT_AVATAR = 'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png';
@@ -189,9 +190,13 @@ function Vedios() {
         }
     }, [videoId]);
 
+    const creatorId = vedio ? getVideoCreatorUserId(vedio) : null;
+    const apiUploaderAvatar = vedio ? pickUploaderAvatarFromContent(vedio) : undefined;
+    const fetchedUploaderAvatar = useUploaderAvatar(creatorId, Boolean(apiUploaderAvatar));
+    const uploaderAvatarSrc = apiUploaderAvatar || fetchedUploaderAvatar || DEFAULT_AVATAR;
+
     if (!vedio) return <div style={{ color: '#334155', textAlign: 'center', paddingTop: '100px' }}>视频加载中...</div>;
 
-    const creatorId = getVideoCreatorUserId(vedio);
     const goCreatorProfile = (e: ReactMouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -289,7 +294,7 @@ function Vedios() {
                                                 border: '2px solid white',
                                                 boxShadow: '0 10px 24px rgba(15, 23, 42, 0.12)',
                                             }}
-                                            src={'https://xiaoanv.oss-cn-beijing.aliyuncs.com/pics/avt.png'}
+                                            src={uploaderAvatarSrc}
                                         />
                                         <div style={{
                                             position: 'absolute',

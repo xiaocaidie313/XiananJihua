@@ -8,7 +8,8 @@ import type { ArticleInfo, ResponseComment, RootComment, RootComments } from '@/
 import { ContentType } from '@/pages/shortvedio'
 import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getArticleCreatorUserId } from '@/utils/contentUser'
+import { getArticleCreatorUserId, pickUploaderAvatarFromContent } from '@/utils/contentUser'
+import { useUploaderAvatar } from '@/hooks/useUploaderAvatar'
 
 /** 独立成行的图片 URL 正则 */
 const IMAGE_LINE_REGEX = /^https?:\/\/[^\s]+\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i
@@ -272,6 +273,12 @@ function News() {
   }, [])
 
   const authorUserId = useMemo(() => getArticleCreatorUserId(article), [article])
+  const apiAuthorAvatar = useMemo(
+    () => (article ? pickUploaderAvatarFromContent(article) : undefined),
+    [article],
+  )
+  const fetchedAuthorAvatar = useUploaderAvatar(authorUserId, Boolean(apiAuthorAvatar))
+  const authorAvatarSrc = apiAuthorAvatar || fetchedAuthorAvatar || DEFAULT_AVATAR
 
   const contentState = useMemo(() => {
     if (article) {
@@ -359,7 +366,7 @@ function News() {
               tabIndex={authorUserId ? 0 : undefined}
               title={authorUserId ? `查看作者「${contentState.author}」主页` : undefined}
             >
-              <Avatar size={56} icon={<UserOutlined />} style={{ backgroundColor: '#8b5cf6' }} />
+              <Avatar size={56} icon={<UserOutlined />} src={authorAvatarSrc} style={{ backgroundColor: '#8b5cf6' }} />
               <div>
                 <div style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>{contentState.author}</div>
                 <div style={{ marginTop: '6px', fontSize: '13px', color: '#94a3b8' }}>

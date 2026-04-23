@@ -1,0 +1,173 @@
+/* B 站 / 抖音风格：浅灰底 + 横向高光扫过 */
+
+@keyframes home-sk-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.home-sk-base {
+  position: relative;
+  overflow: hidden;
+  background: #eceef2;
+}
+
+.home-sk-base::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.52) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: home-sk-shimmer 1.35s ease-in-out infinite;
+}
+
+/* 文章列表：左图右文，与 NewsCardOutline 一致 */
+.home-sk-article-row {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 118px;
+  margin-bottom: 20px;
+}
+
+.home-sk-article-thumb {
+  width: 100%;
+  height: 118px;
+  border-radius: 12px;
+}
+
+.home-sk-article-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.home-sk-line {
+  height: 14px;
+  border-radius: 7px;
+  max-width: 100%;
+}
+
+.home-sk-line--lg {
+  height: 18px;
+  border-radius: 6px;
+  width: 92%;
+}
+
+.home-sk-line--md {
+  width: 48%;
+}
+
+.home-sk-line--sm {
+  width: 72%;
+}
+
+/* 视频网格：封面 + 底部头像与两行字 */
+.home-sk-video-card {
+  width: 100%;
+}
+
+.home-sk-video-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+}
+
+.home-sk-video-meta {
+  display: flex;
+  gap: 12px;
+  padding: 12px 2px 0;
+  align-items: flex-start;
+}
+
+.home-sk-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.home-sk-video-lines {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.home-sk-video-lines .home-sk-line--md {
+  width: 95%;
+}
+
+.home-sk-video-lines .home-sk-line--sm {
+  width: 55%;
+}
+
+/* 侧栏：缩略图 + 文字 */
+.home-sk-sidebar-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.home-sk-sidebar-row:last-child {
+  margin-bottom: 0;
+}
+
+.home-sk-sidebar-thumb {
+  width: 120px;
+  height: 68px;
+  border-radius: 10px;
+}
+
+.home-sk-sidebar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.home-sk-sidebar-text .home-sk-line--md {
+  width: 100%;
+}
+
+.home-sk-sidebar-text .home-sk-line--sm {
+  width: 55%;
+}
+
+/* 编辑精选小块 */
+.home-sk-pick-card {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f4f5f7;
+  border: 1px solid #ebecef;
+  margin-bottom: 10px;
+}
+
+.home-sk-pick-card:last-child {
+  margin-bottom: 0;
+}
+
+.home-sk-pick-card .home-sk-line--lg {
+  width: 100%;
+}
+
+.home-sk-pick-card .home-sk-line--sm {
+  width: 36%;
+  margin-top: 4px;
+}

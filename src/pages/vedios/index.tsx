@@ -13,7 +13,7 @@ function VediosList() {
 
   useEffect(() => {
     if ((location.state as { fromUpload?: boolean })?.fromUpload) {
-      setRefreshing(true)
+      queueMicrotask(() => setRefreshing(true))
       refetch().finally(() => setRefreshing(false))
     }
   }, [location.state, refetch])

@@ -35,6 +35,9 @@ export interface ArticleSummary {
   view_count: number
   collect_count: number
   comment_count: number
+  /** 作者头像（若后端在内容接口中返回） */
+  avatar?: string
+  author_avatar?: string
   /** 作者用户 ID，接口若返回则优先用于跳转个人主页 */
   user_id?: number
   author_id?: number

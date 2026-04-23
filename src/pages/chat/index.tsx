@@ -32,18 +32,23 @@ function Chat() {
   }
 
   const mapQaMessages = useCallback(
-    (rawMessages: QaInfo[]) =>
-      rawMessages.map((item, index) => ({
-        id: index + 1,
-        message: item.content,
-        role:
+    (rawMessages: QaInfo[]): Message[] =>
+      rawMessages.map((item, index) => {
+        const role: Message['role'] =
           item.message_type === MessageType.USER
             ? 'user'
             : item.message_type === MessageType.ASSISTANT
               ? 'assistant'
-              : (index % 2 === 0 ? 'user' : 'assistant'),
-        time: formatTime(item.created_at),
-      })),
+              : index % 2 === 0
+                ? 'user'
+                : 'assistant'
+        return {
+          id: index + 1,
+          message: item.content,
+          role,
+          time: formatTime(item.created_at),
+        }
+      }),
     [],
   )
 

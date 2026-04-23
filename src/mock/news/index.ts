@@ -1,8 +1,10 @@
+import { ARTICLE_CARD_COVER_PLACEHOLDER } from '@/constants/placeholders'
+
 export const news = [
     {
         id: 1,
         author: '张三',
-        cover:'http://xiaoanjihua.cc/images/carousel/01.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -18,7 +20,7 @@ export const news = [
     {
         id: 2,
         author: '李四',
-        cover:'http://xiaoanjihua.cc/images/carousel/02.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -34,7 +36,7 @@ export const news = [
     {
         id: 3,
         author: '王五',
-        cover:'http://xiaoanjihua.cc/images/carousel/03.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -50,7 +52,7 @@ export const news = [
     {
         id: 4,
         author: '赵六',
-        cover:'http://xiaoanjihua.cc/images/carousel/03.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -66,7 +68,7 @@ export const news = [
     {
         id: 5,
         author: '孙七',
-        cover:'http://xiaoanjihua.cc/images/carousel/02.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -82,7 +84,7 @@ export const news = [
     {
         id: 6,
         author: '周八',
-        cover:'http://xiaoanjihua.cc/images/carousel/01.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -98,7 +100,7 @@ export const news = [
     {
         id: 7,
         author: '吴九',
-        cover:'http://xiaoanjihua.cc/images/carousel/02.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -114,7 +116,7 @@ export const news = [
     {
         id: 8,
         author: '郑十',
-        cover:'http://xiaoanjihua.cc/images/carousel/03.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -130,7 +132,7 @@ export const news = [
     {
         id: 9,
         author: '钱十一',
-        cover:'http://xiaoanjihua.cc/images/carousel/02.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,
@@ -146,7 +148,7 @@ export const news = [
     {
         id: 10,
         author: '冯十二',
-        cover:'http://xiaoanjihua.cc/images/carousel/01.jpg',
+        cover: ARTICLE_CARD_COVER_PLACEHOLDER,
         time: {
             year: 2026,
             month: 1,

@@ -88,3 +88,8 @@ export interface GetClassListSuccess {
   has_more: boolean
   next_cursor: number
 }
+
+/** 后端返回的userinfo */
+export interface ResUserInfo {
+  user_info:UserInfo
+}

@@ -45,9 +45,12 @@ function ArticlePage() {
 
   useEffect(() => {
     let active = true
-    setLoading(true)
-    loadArticles().finally(() => {
-      if (active) setLoading(false)
+    queueMicrotask(() => {
+      if (!active) return
+      setLoading(true)
+      void loadArticles().finally(() => {
+        if (active) setLoading(false)
+      })
     })
     return () => { active = false }
   }, [loadArticles])

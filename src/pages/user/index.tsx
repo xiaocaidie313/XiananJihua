@@ -12,9 +12,9 @@ function pickUserPayload(data: unknown): UserInfo | null {
   if (data == null || typeof data !== 'object') return null
   const o = data as Record<string, unknown>
   if (o.user_info && typeof o.user_info === 'object') {
-    return o.user_info as UserInfo
+    return o.user_info as unknown as UserInfo
   }
-  if ('user_id' in o) return o as UserInfo
+  if ('user_id' in o) return o as unknown as UserInfo
   return null
 }
 
