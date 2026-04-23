@@ -2,10 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { Avatar, Button, Spin } from 'antd'
 import { ArrowLeftOutlined, UserOutlined } from '@ant-design/icons'
 import { getUserInfo } from '@/api/auth'
+import { getUserAllContent } from '@/api/content'
 import type { UserInfo } from '@/constants/auth'
+import type { UserAllContent } from '@/constants/content'
+import CreatorWorks from '@/pages/upload/creator-works'
+import { parseUserAllContentPayload } from '@/pages/upload/userWorksData'
 import { getCurrentUserId, getErrorMessage, unwrapResponse } from '@/utils/appState'
 import { useNavigate, useParams } from 'react-router-dom'
 import '../me/index.css'
+import '../upload/index.css'
 import './index.css'
 
 function pickUserPayload(data: unknown): UserInfo | null {
@@ -28,6 +33,9 @@ function UserPublicPage() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [feedback, setFeedback] = useState('')
+  const [works, setWorks] = useState<UserAllContent | null>(null)
+  const [worksLoading, setWorksLoading] = useState(true)
+  const [worksError, setWorksError] = useState<string | null>(null)
 
   const roleTextMap: Record<string, string> = {
     superadmin: '超级管理员',
@@ -71,6 +79,41 @@ function UserPublicPage() {
       }
     })()
 
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
+  useEffect(() => {
+    if (!Number.isFinite(userId) || userId <= 0) {
+      setWorks(null)
+      setWorksError(null)
+      setWorksLoading(false)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      setWorksLoading(true)
+      setWorksError(null)
+      try {
+        const res = await getUserAllContent({ user_id: userId })
+        if (cancelled) return
+        const parsed = parseUserAllContentPayload(res)
+        if (!parsed.ok) {
+          setWorks(null)
+          setWorksError(parsed.message ?? '加载作品列表失败')
+          return
+        }
+        setWorks(parsed.data)
+      } catch (e) {
+        if (!cancelled) {
+          setWorks(null)
+          setWorksError(getErrorMessage(e, '作品列表加载失败，请稍后再试'))
+        }
+      } finally {
+        if (!cancelled) setWorksLoading(false)
+      }
+    })()
     return () => {
       cancelled = true
     }
@@ -137,6 +180,16 @@ function UserPublicPage() {
           </>
         ) : null}
       </section>
+
+      {Number.isFinite(userId) && userId > 0 ? (
+        <section className="surface-card" style={{ marginTop: 20, padding: 24 }}>
+          <div className="section-head" style={{ marginBottom: 4 }}>
+            <div className="section-title" style={{ fontSize: 18 }}>创作内容</div>
+            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 400, marginTop: 4 }}>该创作者发布的文章、视频、播客与条漫</div>
+          </div>
+          <CreatorWorks loading={worksLoading} data={works} error={worksError} />
+        </section>
+      ) : null}
     </div>
   )
 }

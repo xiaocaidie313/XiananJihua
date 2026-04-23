@@ -22,6 +22,8 @@ export interface CommonResponse<T> {
 interface RequestConfig {
   header?: AxiosRequestHeaders | Record<string, string>
   timeout?: number
+  /** 为 true 时 GET 不附加防缓存参数 `_t` */
+  noCacheBuster?: boolean
 }
 
 function fetch<T>(

@@ -11,10 +11,15 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { getUserInfo, updateUserInfo } from '@/api/auth'
+import { getUserAllContent } from '@/api/content'
 import { uploadAvatar } from '@/utils/oss'
 import type { UserInfo } from '@/constants/auth'
+import type { UserAllContent } from '@/constants/content'
 import { clearLoginInfo, getCurrentUserId, getErrorMessage, getStoredUser, setStoredUser, unwrapResponse } from '@/utils/appState'
+import CreatorWorks from '@/pages/upload/creator-works'
+import { parseUserAllContentPayload } from '@/pages/upload/userWorksData'
 import { useLocation, useNavigate } from 'react-router-dom'
+import '../upload/index.css'
 import './index.css'
 
 function Me() {
@@ -29,6 +34,9 @@ function Me() {
   const [avatarError, setAvatarError] = useState('')
   const [editAvatarUrl, setEditAvatarUrl] = useState<string>('')
   const [form] = Form.useForm()
+  const [works, setWorks] = useState<UserAllContent | null>(null)
+  const [worksLoading, setWorksLoading] = useState(true)
+  const [worksError, setWorksError] = useState<string | null>(null)
 
   const roleTextMap: Record<string, string> = {
     superadmin: '超级管理员',
@@ -82,6 +90,42 @@ function Me() {
   useEffect(() => {
     void loadUser()
   }, [])
+
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    if (!userId) {
+      setWorks(null)
+      setWorksError(null)
+      setWorksLoading(false)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      setWorksLoading(true)
+      setWorksError(null)
+      try {
+        const res = await getUserAllContent({ user_id: userId })
+        if (cancelled) return
+        const parsed = parseUserAllContentPayload(res)
+        if (!parsed.ok) {
+          setWorks(null)
+          setWorksError(parsed.message ?? '加载作品列表失败')
+          return
+        }
+        setWorks(parsed.data)
+      } catch (e) {
+        if (!cancelled) {
+          setWorks(null)
+          setWorksError(getErrorMessage(e, '作品列表加载失败，请稍后再试'))
+        }
+      } finally {
+        if (!cancelled) setWorksLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [user?.user_id])
 
   useEffect(() => {
     const pageState = location.state as { justLoggedIn?: boolean } | null
@@ -368,6 +412,18 @@ function Me() {
           </Form.Item>
         </Form>
       </Modal>
+
+      {getCurrentUserId() > 0 ? (
+        <section className="surface-card" style={{ marginTop: 20, padding: 24 }}>
+          <div className="section-head" style={{ marginBottom: 4 }}>
+            <div>
+              <div className="section-title" style={{ fontSize: 18 }}>创作内容</div>
+              <div style={{ fontSize: 13, color: '#64748b', fontWeight: 400, marginTop: 4 }}>我发布的文章、视频、播客与条漫</div>
+            </div>
+          </div>
+          <CreatorWorks loading={worksLoading} data={works} error={worksError} />
+        </section>
+      ) : null}
 
       <div className="page-content-grid">
         <section className="surface-card me-menu-card">

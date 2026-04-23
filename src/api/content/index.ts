@@ -11,6 +11,7 @@ import type {
   ResponseComment,
   RootComments,
   SubComments,
+  UserAllContent,
   Video,
   VideoList,
 } from '../../constants/content'
@@ -207,4 +208,16 @@ export const getNewPodcastsList = (params: CursorPageParams) => {
 /** 获取最新视频 */
 export const getNewVideosList = (params: CursorPageParams) => {
   return instance.get<CommonResponse<VideoList>>('/api/content/get-new-videos', params, { header: authHeader() })
+}
+
+/**
+ * 获取用户作品列表。查看自己或他人「创作者主页」时传 `user_id`（与 `/user/:userId` 一致）；
+ * 未传时通常表示当前登录用户，具体以后端为准。
+ */
+export const getUserAllContent = (params?: Record<string, unknown>) => {
+  return instance.get<CommonResponse<UserAllContent>>(
+    '/api/content/get-user-works',
+    params ?? {},
+    { header: authHeader(), noCacheBuster: true },
+  )
 }

@@ -240,3 +240,11 @@ export interface VideoList {
   has_more: boolean
   next_cursor: number
 }
+
+/** 用户创作中心：全部作品 */
+export interface UserAllContent {
+  articles: ArticleSummary[]
+  videos: VideoSummary[]
+  podcasts: PodcastSummary[]
+  comics: ComicSummary[]
+}
