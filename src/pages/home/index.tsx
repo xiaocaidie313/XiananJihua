@@ -14,6 +14,7 @@ import { readHomeArticlesCache, writeHomeArticlesCache } from '@/utils/homeFeedC
 import VedioCardOutline from '@/components/vediocardoutline'
 import {
   ArticleFeedSkeleton,
+  FeaturedCarouselSkeleton,
   SidebarPickSkeleton,
   SidebarVideoSkeleton,
   VideoGridSkeleton,
@@ -116,26 +117,14 @@ function Home() {
             </div>
             <div
               style={{
-                height: '360px',
+                minHeight: '360px',
                 borderRadius: '16px',
-                backgroundColor: '#f8fafc',
                 overflow: 'hidden',
                 position: 'relative',
               }}
             >
               {!images || images.length === 0 ? (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#64748b',
-                  }}
-                >
-                  轮播图数据加载中...
-                </div>
+                <FeaturedCarouselSkeleton heightPx={360} />
               ) : (
                 <Carousel autoplay autoplaySpeed={3200} draggable infinite={images.length > 1} style={{ width: '100%', height: '360px' }}>
                   {images.map((image) => (

@@ -4,6 +4,7 @@ import NewsCardOutline from '../../components/newcardoutLine'
 import { getSixNews } from '@/features/news/newsSlice'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { getCarouselImages, setCurrentIndex } from '@/features/carousel/carousleSlice'
+import { FeaturedCarouselSkeleton } from '@/pages/home/HomeSkeletons'
 import './index.css'
 
 function Cartoon() {
@@ -49,7 +50,7 @@ function Cartoon() {
 
           <div className="cartoon-carousel">
             {!images || images.length === 0 ? (
-              <div className="cartoon-carousel__placeholder">轮播图数据加载中...</div>
+              <FeaturedCarouselSkeleton />
             ) : (
               <Carousel autoplay autoplaySpeed={3000} afterChange={handleChange} style={{ width: '100%', height: '100%' }}>
                 {images.map((image) => (

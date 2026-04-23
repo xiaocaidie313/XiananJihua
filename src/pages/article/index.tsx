@@ -5,10 +5,17 @@ import { useNavigate } from 'react-router-dom'
 import { getNewArticles } from '@/api/content'
 import NewsCardOutline, { type NewsCardItem } from '@/components/newcardoutLine'
 import { setCurrentIndex } from '@/features/carousel/carousleSlice'
-import { getSixNews } from '@/features/news/newsSlice'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useAppDispatch } from '@/store/hooks'
 import type { ArticleSummary } from '@/constants/content'
+import { ARTICLE_CARD_COVER_PLACEHOLDER } from '@/constants/placeholders'
 import { getErrorMessage, timestampToMs, unwrapResponse } from '@/utils/appState'
+import {
+  ArticleFeedSkeleton,
+  EditorPicksRowSkeleton,
+  FeaturedCarouselSkeleton,
+  SidebarPickSkeleton,
+} from '@/pages/home/HomeSkeletons'
+import '../cartoon/index.css'
 
 function formatArticleDate(publishedAt: number): string {
   const ms = timestampToMs(publishedAt)
@@ -19,7 +26,6 @@ function formatArticleDate(publishedAt: number): string {
 function ArticlePage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const localNews = useAppSelector(getSixNews)
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -61,26 +67,16 @@ function ArticlePage() {
   }
 
   const articleItems = useMemo<NewsCardItem[]>(() => {
-    if (articles.length) {
-      return articles.map((article) => ({
-        id: article.article_id,
-        title: article.name,
-        cover: article.cover,
-        author: article.author,
-        description: article.description || '小安文章频道 · 点击查看详情与正文内容',
-        meta: `${formatArticleDate(article.published_at)} · ${article.view_count || 0} 次阅读 · ${article.comment_count || 0} 条评论`,
-      }))
-    }
-
-    return localNews.map((news) => ({
-      id: news.id,
-      title: news.title,
-      cover: news.cover,
-      author: news.author,
-        description: '小安文章频道 · 点击查看详情与正文内容',
-      meta: `${news.time.year}-${String(news.time.month).padStart(2, '0')}-${String(news.time.day).padStart(2, '0')}`,
+    if (articles.length === 0) return []
+    return articles.map((article) => ({
+      id: article.article_id,
+      title: article.name,
+      cover: article.cover?.trim() || ARTICLE_CARD_COVER_PLACEHOLDER,
+      author: article.author,
+      description: article.description || '小安文章频道 · 点击查看详情与正文内容',
+      meta: `${formatArticleDate(article.published_at)} · ${article.view_count || 0} 次阅读 · ${article.comment_count || 0} 条评论`,
     }))
-  }, [articles, localNews])
+  }, [articles])
 
   const featuredItems = articleItems.slice(0, 3)
   const carouselItems = featuredItems.map((item) => ({ id: item.id, url: item.cover, title: item.title }))
@@ -104,8 +100,8 @@ function ArticlePage() {
           </div>
 
           <div className="cartoon-carousel">
-            {loading && !carouselItems.length ? (
-              <div className="cartoon-carousel__placeholder">精选内容加载中...</div>
+            {loading ? (
+              <FeaturedCarouselSkeleton />
             ) : !carouselItems.length ? (
               <div className="cartoon-carousel__placeholder">暂无精选文章</div>
             ) : (
@@ -139,17 +135,23 @@ function ArticlePage() {
             阅读导览
           </div>
           <div className="info-stack">
-            <div style={{ padding: '14px 16px', borderRadius: '12px', background: '#f8fafc' }}>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>文章统计</div>
-              <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
-                {loading ? '正在拉取...' : `当前展示 ${articleItems.length} 篇文章`}
-              </div>
-            </div>
-            <div style={{ marginTop: '12px' }}>
-              <Button icon={<ReloadOutlined />} onClick={handleRefresh} loading={refreshing} size="small">
-                刷新
-              </Button>
-            </div>
+            {loading ? (
+              <SidebarPickSkeleton count={2} />
+            ) : (
+              <>
+                <div style={{ padding: '14px 16px', borderRadius: '12px', background: '#f8fafc' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>文章统计</div>
+                  <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
+                    当前展示 {articleItems.length} 篇文章
+                  </div>
+                </div>
+                <div style={{ marginTop: '12px' }}>
+                  <Button icon={<ReloadOutlined />} onClick={handleRefresh} loading={refreshing} size="small">
+                    刷新
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </aside>
       </div>
@@ -159,7 +161,7 @@ function ArticlePage() {
           <div>
             <div className="section-title">最新文章</div>
           </div>
-          <span className="soft-tag">{articleItems.length} 篇</span>
+          <span className="soft-tag">{loading ? '加载中' : `${articleItems.length} 篇`}</span>
         </div>
 
         {error && (
@@ -168,26 +170,28 @@ function ArticlePage() {
           </div>
         )}
 
-        {!loading && !articleItems.length ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', color: '#94a3b8' }}>
-            暂无文章，快去发布第一篇吧
-          </div>
-        ) : (
-          <div className="feed-list">
-            {articleItems.map((item) => (
-              <NewsCardOutline key={item.id} item={item} />
-            ))}
-          </div>
-        )}
+        <div className="feed-list">
+          {loading ? (
+            <ArticleFeedSkeleton count={6} />
+          ) : !articleItems.length ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center', color: '#94a3b8' }}>
+              暂无文章，快去发布第一篇吧
+            </div>
+          ) : (
+            articleItems.map((item) => <NewsCardOutline key={item.id} item={item} />)
+          )}
+        </div>
       </section>
 
-      {featuredItems.length > 0 && (
-        <section className="surface-card" style={{ padding: '24px' }}>
-          <div className="section-head">
-            <div>
-              <div className="section-title">编辑精选</div>
-            </div>
+      <section className="surface-card" style={{ padding: '24px' }}>
+        <div className="section-head">
+          <div>
+            <div className="section-title">编辑精选</div>
           </div>
+        </div>
+        {loading ? (
+          <EditorPicksRowSkeleton count={3} />
+        ) : featuredItems.length > 0 ? (
           <div className="grid-auto-cards">
             {featuredItems.map((item) => (
               <div
@@ -213,8 +217,10 @@ function ArticlePage() {
               </div>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div style={{ padding: '28px 8px', textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>暂无精选</div>
+        )}
+      </section>
     </div>
   )
 }

@@ -1,7 +1,34 @@
+import type { CSSProperties } from 'react'
 import './homeSkeletons.css'
 
-function ShimmerBlock({ className }: { className?: string }) {
-  return <div className={`home-sk-base ${className ?? ''}`} aria-hidden />
+function ShimmerBlock({ className, style }: { className?: string; style?: CSSProperties }) {
+  return <div className={`home-sk-base ${className ?? ''}`} style={style} aria-hidden />
+}
+
+/**
+ * 顶部大轮播/精选位（默认 420px 与文章页 cartoon-carousel 一致；首页可传 heightPx=360）
+ */
+export function FeaturedCarouselSkeleton({ heightPx = 420 }: { heightPx?: number }) {
+  return (
+    <ShimmerBlock
+      className="home-sk-featured-carousel"
+      style={{ width: '100%', height: heightPx, borderRadius: heightPx <= 360 ? 16 : 24 }}
+    />
+  )
+}
+
+/** 编辑精选横向三卡（与文章页 grid-auto-cards 一致） */
+export function EditorPicksRowSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="home-sk-pick-row">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={`ep-${i}`} className="home-sk-pick-card home-sk-pick-card--row-item">
+          <ShimmerBlock className="home-sk-line home-sk-line--lg" />
+          <ShimmerBlock className="home-sk-line home-sk-line--sm" />
+        </div>
+      ))}
+    </div>
+  )
 }
 
 /** 最新文章列表骨架（左图右文） */

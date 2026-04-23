@@ -1,21 +1,8 @@
 import Header from './components/header'
 import Sidebar from './components/sidebar'
 import { useState } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import Cartoon from './pages/cartoon'
-import Chat from './pages/chat'
-import Home from './pages/home'
-import LoginPage from './pages/login'
-import Me from './pages/me'
-import UserPublicPage from './pages/user'
-import ArticlePage from './pages/article'
-import News from './pages/news'
-import Podcast from './pages/podcast'
-import ShortVideo from './pages/shortvedio'
-import Vedios from './pages/shortvedio/details'
-import VediosList from './pages/vedios'
-import UploadPage from './pages/upload'
-import Warn from './pages/warn'
+import { useLocation } from 'react-router-dom'
+import { AppRoutes } from './routes'
 
 function App() {
   const location = useLocation()
@@ -41,24 +28,7 @@ function App() {
             className={`app-main${isLoginPage ? ' app-main--login' : ''}${isChatPage ? ' app-main--chat' : ''}`}
             style={{ position: 'relative' }}
           >
-            <Routes> 
-              <Route path="/" element={<Navigate to="/home" />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/warn" element={<Warn />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/article" element={<ArticlePage />} />
-              <Route path="/news/:id" element={<News />} />
-              <Route path="/me" element={<Me />} />
-              <Route path="/user/:userId" element={<UserPublicPage />} />
-              <Route path="/shortvideo" element={<ShortVideo />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/vedios/:id" element={<Vedios />} />
-              <Route path="/vedios" element={<VediosList />} />
-              <Route path="/cartoon" element={<Cartoon />} />
-              <Route path="/podcast" element={<Podcast />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+            <AppRoutes />
           </main>
         </div>
       </div>
