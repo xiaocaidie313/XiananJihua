@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig, type AxiosRequestHeaders } from 'axios'
+import { API_BASE_URL } from '@/config/apiBase'
 
-const baseURL = 'https://xiaoanjihua.cc'
+const baseURL = API_BASE_URL
 
 const Method = {
   GET: 'GET',

@@ -551,7 +551,7 @@ function UploadPage() {
             <div style={{ padding: '14px 16px', borderRadius: '12px', background: '#f8fafc' }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>播客上传</div>
               <div style={{ marginTop: '8px', fontSize: '13px', lineHeight: 1.6, color: '#64748b' }}>
-                支持 MP3、M4A、WAV，最大 300MB，音频存入同 Bucket 的 <code style={{ fontSize: 12 }}>voic/</code> 目录；封面仍在 <code style={{ fontSize: 12 }}>pics/</code>。可在 .env.local 中配置 <code style={{ fontSize: 12 }}>VITE_OSS_VOICE_PREFIX</code>、<code style={{ fontSize: 12 }}>VITE_OSS_PIC_PREFIX</code>
+                支持 MP3、M4A、WAV，最大 300MB
               </div>
             </div>
           </div>

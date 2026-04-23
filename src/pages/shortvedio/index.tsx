@@ -1,11 +1,13 @@
 import { CloseOutlined, HeartFilled, MessageFilled, ShareAltOutlined } from '@ant-design/icons'
 import { likeContent, unlikeContent, getRootComment, addComment } from '@/api/content'
+import type { VideoItem } from '@/api/content/types'
 import type { ResponseComment, RootComments } from '@/constants/content'
 import type { RootComment } from '@/constants/content'
+import { useUploaderAvatar } from '@/hooks/useUploaderAvatar'
 import { useVideos } from '@/hooks/useVideos'
 import { USER_UPDATED_EVENT, getCurrentUserId, getErrorMessage, getStoredUser, timestampToMs, unwrapResponse } from '@/utils/appState'
-import { getVideoCreatorUserId } from '@/utils/contentUser'
-import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { getVideoCreatorUserId, pickUploaderAvatarFromContent } from '@/utils/contentUser'
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './index.css'
 
@@ -22,6 +24,57 @@ export const ContentType = {
   comic: 'comic',
 } as const
 
+/**
+ * 与长视频卡 VedioCardOutline 一致：优先接口 author_avatar/avatar，否则按 user_id 拉取，再默认图。
+ * 解决短视频页只显示作者名首字、与真实上传者头像不一致的问题。
+ */
+function ShortVideoAuthorAvatar({ vedio }: { vedio: VideoItem }) {
+  const navigate = useNavigate()
+  const creatorId = getVideoCreatorUserId(vedio)
+  const apiAvatar = pickUploaderAvatarFromContent(vedio)
+  const fetchedAvatar = useUploaderAvatar(creatorId, Boolean(apiAvatar))
+  const avatarSrc = (apiAvatar || fetchedAvatar || DEFAULT_AVATAR).trim()
+  const [imgFailed, setImgFailed] = useState(false)
+
+  useEffect(() => {
+    queueMicrotask(() => setImgFailed(false))
+  }, [vedio.video_id, avatarSrc])
+
+  const goCreatorProfile = (e: ReactMouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (creatorId) navigate(`/user/${creatorId}`)
+  }
+
+  const onKeyActivate = (e: ReactKeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      e.stopPropagation()
+      if (creatorId) navigate(`/user/${creatorId}`)
+    }
+  }
+
+  const showImage = Boolean(avatarSrc) && !imgFailed
+
+  return (
+    <div
+      className={`shortvideo-author-avatar${creatorId ? ' is-clickable' : ''}`}
+      title={creatorId ? `${vedio.author ?? ''}的主页` : vedio.author}
+      onClick={creatorId ? goCreatorProfile : undefined}
+      onKeyDown={creatorId ? onKeyActivate : undefined}
+      role={creatorId ? 'button' : undefined}
+      tabIndex={creatorId ? 0 : undefined}
+    >
+      <div className="shortvideo-author-avatar__inner">
+        {showImage ? (
+          <img src={avatarSrc} alt="" onError={() => setImgFailed(true)} />
+        ) : (
+          (vedio.author ?? '用户').slice(0, 1)
+        )}
+      </div>
+    </div>
+  )
+}
 
 function ShortVideo() {
   const navigate = useNavigate()
@@ -477,28 +530,7 @@ function ShortVideo() {
                     </div>
                     {/* // 操作按钮 */}
                     <div className="shortvideo-actions">
-                      <div
-                        className={`shortvideo-author-avatar${creatorId ? ' is-clickable' : ''}`}
-                        title={creatorId ? `${vedio.author ?? ''}的主页` : vedio.author}
-                        onClick={creatorId ? goCreatorProfile : undefined}
-                        onKeyDown={
-                          creatorId
-                            ? (e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  navigate(`/user/${creatorId}`)
-                                }
-                              }
-                            : undefined
-                        }
-                        role={creatorId ? 'button' : undefined}
-                        tabIndex={creatorId ? 0 : undefined}
-                      >
-                        <div className="shortvideo-author-avatar__inner">
-                          {(vedio.author ?? '').slice(0, 1)}
-                        </div>
-                      </div>
+                      <ShortVideoAuthorAvatar vedio={vedio} />
                       <button
                         className={`shortvideo-action${isLiked ? ' is-liked' : ''}`}
                         onClick={() => void handleToggleLike(vid)}
